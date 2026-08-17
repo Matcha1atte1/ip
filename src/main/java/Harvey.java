@@ -4,6 +4,7 @@ import java.util.Scanner;
  * Entry point of the Harvey chatbot.
  * At this stage Harvey stores three kinds of task ({@link Todo}, {@link Deadline} and
  * {@link Event}), lists them back on request, and remembers which have been marked as done.
+ * Input it cannot carry out is reported through {@link HarveyException} instead of crashing.
  */
 public class Harvey {
     /** Horizontal line used to separate Harvey's replies from the user's input. */
@@ -69,19 +70,25 @@ public class Harvey {
 
             if (command.equals(COMMAND_BYE)) {
                 break;
-            } else if (command.equals(COMMAND_LIST)) {
-                showReply("Here are the tasks in your list:" + System.lineSeparator()
-                        + formatTasks(tasks, taskCount));
-            } else if (command.equals(COMMAND_MARK) || command.equals(COMMAND_UNMARK)) {
-                // The two commands differ only in the status they set and the message they show,
-                // so they share one branch instead of duplicating the number-checking code.
-                boolean isMarking = command.equals(COMMAND_MARK);
+            }
 
-                // Task numbers shown to the user start at 1, so subtract 1 for the array index.
-                int index = parseTaskNumber(argument, taskCount);
-                if (index < 0) {
-                    showReply("Sorry, that is not a valid task number.");
-                } else {
+            // Every branch below may reject the input by throwing HarveyException.
+            // Catching it here, once, means each branch can simply describe what is
+            // wrong and stop, instead of passing failure codes back up by hand.
+            try {
+                if (command.equals(COMMAND_LIST)) {
+                    if (taskCount == 0) {
+                        throw new HarveyException("Your list is empty. Add something with, say: todo borrow book");
+                    }
+                    showReply("Here are the tasks in your list:" + System.lineSeparator()
+                            + formatTasks(tasks, taskCount));
+                } else if (command.equals(COMMAND_MARK) || command.equals(COMMAND_UNMARK)) {
+                    // The two commands differ only in the status they set and the message they show,
+                    // so they share one branch instead of duplicating the number-checking code.
+                    boolean isMarking = command.equals(COMMAND_MARK);
+
+                    // Task numbers shown to the user start at 1, so subtract 1 for the array index.
+                    int index = parseTaskNumber(argument, taskCount, command);
                     String message;
                     if (isMarking) {
                         tasks[index].markAsDone();
@@ -91,23 +98,29 @@ public class Harvey {
                         message = "OK, I've marked this task as not done yet:";
                     }
                     showReply(message + System.lineSeparator() + "  " + tasks[index]);
-                }
-            } else if (command.equals(COMMAND_TODO)
-                    || command.equals(COMMAND_DEADLINE)
-                    || command.equals(COMMAND_EVENT)) {
-                // createTask returns null when the arguments are missing or malformed.
-                Task task = createTask(command, argument);
-                if (task == null) {
-                    showReply("Sorry, I could not understand that " + command + ".");
-                } else {
+                } else if (command.equals(COMMAND_TODO)
+                        || command.equals(COMMAND_DEADLINE)
+                        || command.equals(COMMAND_EVENT)) {
+                    if (taskCount == MAX_TASKS) {
+                        throw new HarveyException("My list is full at " + MAX_TASKS
+                                + " tasks, so I cannot add another one.");
+                    }
+                    Task task = createTask(command, argument);
                     tasks[taskCount] = task;
                     taskCount++;
                     showReply("Got it. I've added this task:" + System.lineSeparator()
                             + "  " + task + System.lineSeparator()
                             + "Now you have " + taskCount + " tasks in the list.");
+                } else if (command.isEmpty()) {
+                    throw new HarveyException("You did not type anything. "
+                            + "I understand: todo, deadline, event, list, mark, unmark and bye.");
+                } else {
+                    throw new HarveyException("I don't recognise the command \"" + command + "\". "
+                            + "I understand: todo, deadline, event, list, mark, unmark and bye.");
                 }
-            } else {
-                showReply("Sorry, I don't know what \"" + command + "\" means.");
+            } catch (HarveyException e) {
+                // getMessage() returns the explanation the thrower wrote for the user.
+                showReply("Sorry! " + e.getMessage());
             }
         }
 
@@ -124,11 +137,13 @@ public class Harvey {
      *
      * @param command  the command word that was typed
      * @param argument everything typed after the command word
-     * @return the new task, or {@code null} if the argument is missing or malformed
+     * @return the new task
+     * @throws HarveyException if the description or any required date is missing
      */
-    private static Task createTask(String command, String argument) {
+    private static Task createTask(String command, String argument) throws HarveyException {
         if (argument.isEmpty()) {
-            return null;
+            throw new HarveyException("A " + command + " needs a description. For example: "
+                    + exampleOf(command));
         }
 
         if (command.equals(COMMAND_TODO)) {
@@ -137,37 +152,56 @@ public class Harvey {
 
         if (command.equals(COMMAND_DEADLINE)) {
             // "return book /by Sunday" splits into "return book" and "Sunday".
-            String[] parts = splitAtOption(argument, OPTION_BY);
-            return (parts == null) ? null : new Deadline(parts[0], parts[1]);
+            String[] parts = splitAtOption(argument, OPTION_BY,
+                    "A deadline needs a due date after " + OPTION_BY + ". For example: "
+                            + exampleOf(COMMAND_DEADLINE));
+            return new Deadline(parts[0], parts[1]);
         }
 
         // An event needs two separators, so split at "/from" first and then at "/to".
-        String[] fromParts = splitAtOption(argument, OPTION_FROM);
-        if (fromParts == null) {
-            return null;
+        String eventExample = "An event needs a start after " + OPTION_FROM + " and an end after "
+                + OPTION_TO + ". For example: " + exampleOf(COMMAND_EVENT);
+        String[] fromParts = splitAtOption(argument, OPTION_FROM, eventExample);
+        String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventExample);
+        return new Event(fromParts[0], toParts[0], toParts[1]);
+    }
+
+    /**
+     * Returns a correctly formed example of a command, used to show the user how to fix a mistake.
+     *
+     * @param command the command word to illustrate
+     * @return one line the user could type
+     */
+    private static String exampleOf(String command) {
+        if (command.equals(COMMAND_TODO)) {
+            return "todo borrow book";
         }
-        String[] toParts = splitAtOption(fromParts[1], OPTION_TO);
-        return (toParts == null) ? null : new Event(fromParts[0], toParts[0], toParts[1]);
+        if (command.equals(COMMAND_DEADLINE)) {
+            return "deadline return book /by Sunday";
+        }
+        return "event project meeting /from Mon 2pm /to 4pm";
     }
 
     /**
      * Splits text at the first occurrence of an option such as {@code /by}.
      *
-     * @param text   the text to split
-     * @param option the option to split at
-     * @return the text before and after the option, or {@code null} if the option is
-     *         absent or either side of it is empty
+     * @param text            the text to split
+     * @param option          the option to split at
+     * @param errorMessage    the explanation to show the user if the split is not possible
+     * @return the text before and after the option
+     * @throws HarveyException if the option is absent or either side of it is empty
      */
-    private static String[] splitAtOption(String text, String option) {
+    private static String[] splitAtOption(String text, String option, String errorMessage)
+            throws HarveyException {
         int optionPosition = text.indexOf(option);
         if (optionPosition < 0) {
-            return null;
+            throw new HarveyException(errorMessage);
         }
 
         String before = text.substring(0, optionPosition).trim();
         String after = text.substring(optionPosition + option.length()).trim();
         if (before.isEmpty() || after.isEmpty()) {
-            return null;
+            throw new HarveyException(errorMessage);
         }
         return new String[] {before, after};
     }
@@ -196,17 +230,37 @@ public class Harvey {
      *
      * @param argument  the text typed after the command word
      * @param taskCount how many tasks are currently stored
-     * @return the zero-based index of the task, or -1 if the argument is not a valid task number
+     * @param command   the command word, used to make the error messages specific
+     * @return the zero-based index of the task
+     * @throws HarveyException if the argument is missing, is not a number, or names a task
+     *                         that does not exist
      */
-    private static int parseTaskNumber(String argument, int taskCount) {
+    private static int parseTaskNumber(String argument, int taskCount, String command)
+            throws HarveyException {
+        if (argument.isEmpty()) {
+            throw new HarveyException("Tell me which task to " + command
+                    + ". For example: " + command + " 2");
+        }
+        if (taskCount == 0) {
+            throw new HarveyException("You have no tasks yet, so there is nothing to "
+                    + command + ".");
+        }
+
         int index;
         try {
-            index = Integer.parseInt(argument.trim()) - 1;
+            index = Integer.parseInt(argument) - 1;
         } catch (NumberFormatException e) {
             // The user typed something that is not a number, e.g. "mark book".
-            return -1;
+            // The original exception is not shown to the user; the advice below is more useful.
+            throw new HarveyException("\"" + argument + "\" is not a task number. Use the number "
+                    + "shown by list, for example: " + command + " 2");
         }
-        return (index >= 0 && index < taskCount) ? index : -1;
+
+        if (index < 0 || index >= taskCount) {
+            throw new HarveyException("There is no task " + (index + 1) + ". You have "
+                    + taskCount + " task(s), so pick a number from 1 to " + taskCount + ".");
+        }
+        return index;
     }
 
     /** Prints the banner and welcome message shown when Harvey starts up. */
