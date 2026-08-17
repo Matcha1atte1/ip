@@ -36,7 +36,8 @@ public class Harvey {
 
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
-            String input = scanner.nextLine();
+            // Trimming here means stray spaces around the input do not hide the command word.
+            String input = scanner.nextLine().trim();
 
             // Every command is a single word, optionally followed by arguments,
             // so splitting once here keeps the branches below simple.
@@ -120,7 +121,9 @@ public class Harvey {
      */
     private static Task createTask(Command command, String argument) throws HarveyException {
         if (argument.isEmpty()) {
-            throw new HarveyException("A " + command.getKeyword() + " needs a description. "
+            // "event" starts with a vowel, so it needs "An" rather than "A".
+            String article = (command == Command.EVENT) ? "An " : "A ";
+            throw new HarveyException(article + command.getKeyword() + " needs a description. "
                     + "For example: " + command.getExample());
         }
 
