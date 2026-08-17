@@ -18,6 +18,9 @@ public class Harvey {
     /** Command that marks a task as done, used as {@code mark <task number>}. */
     private static final String COMMAND_MARK = "mark";
 
+    /** Command that marks a task as not done, used as {@code unmark <task number>}. */
+    private static final String COMMAND_UNMARK = "unmark";
+
     /** Largest number of tasks Harvey can hold, as allowed by the Level-2 requirements. */
     private static final int MAX_TASKS = 100;
 
@@ -46,14 +49,22 @@ public class Harvey {
             } else if (input.equals(COMMAND_LIST)) {
                 showReply("Here are the tasks in your list:" + System.lineSeparator()
                         + formatTasks(tasks, isDone, taskCount));
-            } else if (input.startsWith(COMMAND_MARK + " ")) {
+            } else if (input.startsWith(COMMAND_MARK + " ") || input.startsWith(COMMAND_UNMARK + " ")) {
+                // The two commands differ only in the status they set and the message they show,
+                // so they share one branch instead of duplicating the number-checking code.
+                boolean isMarking = input.startsWith(COMMAND_MARK + " ");
+                String command = isMarking ? COMMAND_MARK : COMMAND_UNMARK;
+
                 // Task numbers shown to the user start at 1, so subtract 1 for the array index.
-                int index = parseTaskNumber(input.substring(COMMAND_MARK.length() + 1), taskCount);
+                int index = parseTaskNumber(input.substring(command.length() + 1), taskCount);
                 if (index < 0) {
                     showReply("Sorry, that is not a valid task number.");
                 } else {
-                    isDone[index] = true;
-                    showReply("Nice! I've marked this task as done:" + System.lineSeparator()
+                    isDone[index] = isMarking;
+                    String message = isMarking
+                            ? "Nice! I've marked this task as done:"
+                            : "OK, I've marked this task as not done yet:";
+                    showReply(message + System.lineSeparator()
                             + "  " + formatTask(tasks[index], isDone[index]));
                 }
             } else {
@@ -97,7 +108,7 @@ public class Harvey {
     }
 
     /**
-     * Converts the argument of a {@code mark} command into a valid array index.
+     * Converts the argument of a {@code mark} or {@code unmark} command into a valid array index.
      *
      * @param argument  the text typed after the command word
      * @param taskCount how many tasks are currently stored
