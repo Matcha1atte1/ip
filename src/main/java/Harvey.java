@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -31,6 +32,13 @@ public class Harvey {
     /** Command that adds a task spanning a period, used as {@code event <description> /from <start> /to <end>}. */
     private static final String COMMAND_EVENT = "event";
 
+    /** Command that removes a task, used as {@code delete <task number>}. */
+    private static final String COMMAND_DELETE = "delete";
+
+    /** Reminder of what Harvey understands, appended to the "unknown command" replies. */
+    private static final String KNOWN_COMMANDS =
+            "I understand: todo, deadline, event, list, mark, unmark, delete and bye.";
+
     /** Separator that introduces the due date of a deadline. */
     private static final String OPTION_BY = "/by";
 
@@ -40,9 +48,6 @@ public class Harvey {
     /** Separator that introduces the end time of an event. */
     private static final String OPTION_TO = "/to";
 
-    /** Largest number of tasks Harvey can hold, as allowed by the Level-2 requirements. */
-    private static final int MAX_TASKS = 100;
-
     /** ASCII art of the chatbot's name, shown once on startup. */
     private static final String BANNER = " _   _     _     ____  __     __ _____ __   __\n"
             + "| | | |   / \\   |  _ \\ \\ \\   / /| ____|\\ \\ / /\n"
@@ -51,10 +56,9 @@ public class Harvey {
             + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
 
     public static void main(String[] args) {
-        // Each Task carries its own description and completion status,
-        // so a single array is enough.
-        Task[] tasks = new Task[MAX_TASKS];
-        int taskCount = 0;
+        // An ArrayList grows as tasks are added and closes the gap when one is
+        // removed, so Harvey no longer needs a fixed capacity or its own counter.
+        ArrayList<Task> tasks = new ArrayList<>();
 
         showGreeting();
 
@@ -77,46 +81,49 @@ public class Harvey {
             // wrong and stop, instead of passing failure codes back up by hand.
             try {
                 if (command.equals(COMMAND_LIST)) {
-                    if (taskCount == 0) {
+                    if (tasks.isEmpty()) {
                         throw new HarveyException("Your list is empty. Add something with, say: todo borrow book");
                     }
                     showReply("Here are the tasks in your list:" + System.lineSeparator()
-                            + formatTasks(tasks, taskCount));
+                            + formatTasks(tasks));
                 } else if (command.equals(COMMAND_MARK) || command.equals(COMMAND_UNMARK)) {
                     // The two commands differ only in the status they set and the message they show,
                     // so they share one branch instead of duplicating the number-checking code.
                     boolean isMarking = command.equals(COMMAND_MARK);
 
-                    // Task numbers shown to the user start at 1, so subtract 1 for the array index.
-                    int index = parseTaskNumber(argument, taskCount, command);
+                    // Task numbers shown to the user start at 1, so subtract 1 for the list index.
+                    int index = parseTaskNumber(argument, tasks.size(), command);
+                    Task task = tasks.get(index);
                     String message;
                     if (isMarking) {
-                        tasks[index].markAsDone();
+                        task.markAsDone();
                         message = "Nice! I've marked this task as done:";
                     } else {
-                        tasks[index].markAsNotDone();
+                        task.markAsNotDone();
                         message = "OK, I've marked this task as not done yet:";
                     }
-                    showReply(message + System.lineSeparator() + "  " + tasks[index]);
+                    showReply(message + System.lineSeparator() + "  " + task);
+                } else if (command.equals(COMMAND_DELETE)) {
+                    int index = parseTaskNumber(argument, tasks.size(), command);
+                    // remove() returns the task it took out and shifts the rest down,
+                    // so the remaining tasks stay numbered 1, 2, 3, ... with no gap.
+                    Task removed = tasks.remove(index);
+                    showReply("Noted. I've removed this task:" + System.lineSeparator()
+                            + "  " + removed + System.lineSeparator()
+                            + "Now you have " + tasks.size() + " tasks in the list.");
                 } else if (command.equals(COMMAND_TODO)
                         || command.equals(COMMAND_DEADLINE)
                         || command.equals(COMMAND_EVENT)) {
-                    if (taskCount == MAX_TASKS) {
-                        throw new HarveyException("My list is full at " + MAX_TASKS
-                                + " tasks, so I cannot add another one.");
-                    }
                     Task task = createTask(command, argument);
-                    tasks[taskCount] = task;
-                    taskCount++;
+                    tasks.add(task);
                     showReply("Got it. I've added this task:" + System.lineSeparator()
                             + "  " + task + System.lineSeparator()
-                            + "Now you have " + taskCount + " tasks in the list.");
+                            + "Now you have " + tasks.size() + " tasks in the list.");
                 } else if (command.isEmpty()) {
-                    throw new HarveyException("You did not type anything. "
-                            + "I understand: todo, deadline, event, list, mark, unmark and bye.");
+                    throw new HarveyException("You did not type anything. " + KNOWN_COMMANDS);
                 } else {
                     throw new HarveyException("I don't recognise the command \"" + command + "\". "
-                            + "I understand: todo, deadline, event, list, mark, unmark and bye.");
+                            + KNOWN_COMMANDS);
                 }
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
@@ -209,18 +216,17 @@ public class Harvey {
     /**
      * Builds the numbered list of stored tasks as a single block of text.
      *
-     * @param tasks     the stored tasks
-     * @param taskCount how many entries of {@code tasks} are actually in use
+     * @param tasks the stored tasks
      * @return the tasks numbered from 1, one per line
      */
-    private static String formatTasks(Task[] tasks, int taskCount) {
+    private static String formatTasks(ArrayList<Task> tasks) {
         StringBuilder list = new StringBuilder();
-        for (int i = 0; i < taskCount; i++) {
+        for (int i = 0; i < tasks.size(); i++) {
             if (i > 0) {
                 list.append(System.lineSeparator());
             }
             // Task.toString() supplies the "[X] description" part.
-            list.append(i + 1).append('.').append(tasks[i]);
+            list.append(i + 1).append('.').append(tasks.get(i));
         }
         return list.toString();
     }
