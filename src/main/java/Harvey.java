@@ -32,10 +32,9 @@ public class Harvey {
             + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
 
     public static void main(String[] args) {
-        String[] tasks = new String[MAX_TASKS];
-        // Parallel array: isDone[i] is the completion status of tasks[i].
-        // A second array keeps the "no new classes" requirement satisfied.
-        boolean[] isDone = new boolean[MAX_TASKS];
+        // Each Task carries its own description and completion status,
+        // so a single array is enough.
+        Task[] tasks = new Task[MAX_TASKS];
         int taskCount = 0;
 
         showGreeting();
@@ -48,7 +47,7 @@ public class Harvey {
                 break;
             } else if (input.equals(COMMAND_LIST)) {
                 showReply("Here are the tasks in your list:" + System.lineSeparator()
-                        + formatTasks(tasks, isDone, taskCount));
+                        + formatTasks(tasks, taskCount));
             } else if (input.startsWith(COMMAND_MARK + " ") || input.startsWith(COMMAND_UNMARK + " ")) {
                 // The two commands differ only in the status they set and the message they show,
                 // so they share one branch instead of duplicating the number-checking code.
@@ -60,15 +59,18 @@ public class Harvey {
                 if (index < 0) {
                     showReply("Sorry, that is not a valid task number.");
                 } else {
-                    isDone[index] = isMarking;
-                    String message = isMarking
-                            ? "Nice! I've marked this task as done:"
-                            : "OK, I've marked this task as not done yet:";
-                    showReply(message + System.lineSeparator()
-                            + "  " + formatTask(tasks[index], isDone[index]));
+                    String message;
+                    if (isMarking) {
+                        tasks[index].markAsDone();
+                        message = "Nice! I've marked this task as done:";
+                    } else {
+                        tasks[index].markAsNotDone();
+                        message = "OK, I've marked this task as not done yet:";
+                    }
+                    showReply(message + System.lineSeparator() + "  " + tasks[index]);
                 }
             } else {
-                tasks[taskCount] = input;
+                tasks[taskCount] = new Task(input);
                 taskCount++;
                 showReply("added: " + input);
             }
@@ -81,30 +83,19 @@ public class Harvey {
      * Builds the numbered list of stored tasks as a single block of text.
      *
      * @param tasks     the stored tasks
-     * @param isDone    completion status of each stored task
      * @param taskCount how many entries of {@code tasks} are actually in use
      * @return the tasks numbered from 1, one per line
      */
-    private static String formatTasks(String[] tasks, boolean[] isDone, int taskCount) {
+    private static String formatTasks(Task[] tasks, int taskCount) {
         StringBuilder list = new StringBuilder();
         for (int i = 0; i < taskCount; i++) {
             if (i > 0) {
                 list.append(System.lineSeparator());
             }
-            list.append(i + 1).append('.').append(formatTask(tasks[i], isDone[i]));
+            // Task.toString() supplies the "[X] description" part.
+            list.append(i + 1).append('.').append(tasks[i]);
         }
         return list.toString();
-    }
-
-    /**
-     * Formats one task as a status box followed by its description, e.g. {@code [X] read book}.
-     *
-     * @param task   the task description
-     * @param isDone whether the task has been marked as done
-     * @return the task with its status icon
-     */
-    private static String formatTask(String task, boolean isDone) {
-        return "[" + (isDone ? "X" : " ") + "] " + task;
     }
 
     /**
