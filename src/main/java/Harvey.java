@@ -11,34 +11,6 @@ public class Harvey {
     /** Horizontal line used to separate Harvey's replies from the user's input. */
     private static final String DIVIDER = "____________________________________________________________";
 
-    /** Command that ends the conversation. */
-    private static final String COMMAND_BYE = "bye";
-
-    /** Command that shows everything stored so far. */
-    private static final String COMMAND_LIST = "list";
-
-    /** Command that marks a task as done, used as {@code mark <task number>}. */
-    private static final String COMMAND_MARK = "mark";
-
-    /** Command that marks a task as not done, used as {@code unmark <task number>}. */
-    private static final String COMMAND_UNMARK = "unmark";
-
-    /** Command that adds a task with no date attached, used as {@code todo <description>}. */
-    private static final String COMMAND_TODO = "todo";
-
-    /** Command that adds a due task, used as {@code deadline <description> /by <when>}. */
-    private static final String COMMAND_DEADLINE = "deadline";
-
-    /** Command that adds a task spanning a period, used as {@code event <description> /from <start> /to <end>}. */
-    private static final String COMMAND_EVENT = "event";
-
-    /** Command that removes a task, used as {@code delete <task number>}. */
-    private static final String COMMAND_DELETE = "delete";
-
-    /** Reminder of what Harvey understands, appended to the "unknown command" replies. */
-    private static final String KNOWN_COMMANDS =
-            "I understand: todo, deadline, event, list, mark, unmark, delete and bye.";
-
     /** Separator that introduces the due date of a deadline. */
     private static final String OPTION_BY = "/by";
 
@@ -69,61 +41,59 @@ public class Harvey {
             // Every command is a single word, optionally followed by arguments,
             // so splitting once here keeps the branches below simple.
             String[] words = input.split(" ", 2);
-            String command = words[0];
+            String keyword = words[0];
             String argument = (words.length > 1) ? words[1].trim() : "";
 
-            if (command.equals(COMMAND_BYE)) {
-                break;
-            }
-
-            // Every branch below may reject the input by throwing HarveyException.
-            // Catching it here, once, means each branch can simply describe what is
+            // Every step below may reject the input by throwing HarveyException.
+            // Catching it here, once, means each step can simply describe what is
             // wrong and stop, instead of passing failure codes back up by hand.
             try {
-                if (command.equals(COMMAND_LIST)) {
+                // Turning the typed word into a Command up front means the switch below
+                // deals in a fixed set of values rather than in free-form text.
+                Command command = Command.fromKeyword(keyword);
+
+                if (command == Command.BYE) {
+                    break;
+                }
+
+                switch (command) {
+                case LIST:
                     if (tasks.isEmpty()) {
-                        throw new HarveyException("Your list is empty. Add something with, say: todo borrow book");
+                        throw new HarveyException("Your list is empty. Add something with, say: "
+                                + Command.TODO.getExample());
                     }
                     showReply("Here are the tasks in your list:" + System.lineSeparator()
                             + formatTasks(tasks));
-                } else if (command.equals(COMMAND_MARK) || command.equals(COMMAND_UNMARK)) {
-                    // The two commands differ only in the status they set and the message they show,
-                    // so they share one branch instead of duplicating the number-checking code.
-                    boolean isMarking = command.equals(COMMAND_MARK);
-
+                    break;
+                case MARK:
                     // Task numbers shown to the user start at 1, so subtract 1 for the list index.
-                    int index = parseTaskNumber(argument, tasks.size(), command);
-                    Task task = tasks.get(index);
-                    String message;
-                    if (isMarking) {
-                        task.markAsDone();
-                        message = "Nice! I've marked this task as done:";
-                    } else {
-                        task.markAsNotDone();
-                        message = "OK, I've marked this task as not done yet:";
-                    }
-                    showReply(message + System.lineSeparator() + "  " + task);
-                } else if (command.equals(COMMAND_DELETE)) {
-                    int index = parseTaskNumber(argument, tasks.size(), command);
+                    Task marked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
+                    marked.markAsDone();
+                    showReply("Nice! I've marked this task as done:" + System.lineSeparator()
+                            + "  " + marked);
+                    break;
+                case UNMARK:
+                    Task unmarked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
+                    unmarked.markAsNotDone();
+                    showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
+                            + "  " + unmarked);
+                    break;
+                case DELETE:
                     // remove() returns the task it took out and shifts the rest down,
                     // so the remaining tasks stay numbered 1, 2, 3, ... with no gap.
-                    Task removed = tasks.remove(index);
+                    Task removed = tasks.remove(parseTaskNumber(argument, tasks.size(), command));
                     showReply("Noted. I've removed this task:" + System.lineSeparator()
                             + "  " + removed + System.lineSeparator()
                             + "Now you have " + tasks.size() + " tasks in the list.");
-                } else if (command.equals(COMMAND_TODO)
-                        || command.equals(COMMAND_DEADLINE)
-                        || command.equals(COMMAND_EVENT)) {
+                    break;
+                default:
+                    // The three task-creating commands, which differ only inside createTask.
                     Task task = createTask(command, argument);
                     tasks.add(task);
                     showReply("Got it. I've added this task:" + System.lineSeparator()
                             + "  " + task + System.lineSeparator()
                             + "Now you have " + tasks.size() + " tasks in the list.");
-                } else if (command.isEmpty()) {
-                    throw new HarveyException("You did not type anything. " + KNOWN_COMMANDS);
-                } else {
-                    throw new HarveyException("I don't recognise the command \"" + command + "\". "
-                            + KNOWN_COMMANDS);
+                    break;
                 }
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
@@ -142,51 +112,35 @@ public class Harvey {
      * later calls {@code toString()} on the stored task and each subclass supplies its own
      * version.
      *
-     * @param command  the command word that was typed
+     * @param command  the command that was typed, one of {@link Command#TODO},
+     *                 {@link Command#DEADLINE} or {@link Command#EVENT}
      * @param argument everything typed after the command word
      * @return the new task
      * @throws HarveyException if the description or any required date is missing
      */
-    private static Task createTask(String command, String argument) throws HarveyException {
+    private static Task createTask(Command command, String argument) throws HarveyException {
         if (argument.isEmpty()) {
-            throw new HarveyException("A " + command + " needs a description. For example: "
-                    + exampleOf(command));
+            throw new HarveyException("A " + command.getKeyword() + " needs a description. "
+                    + "For example: " + command.getExample());
         }
 
-        if (command.equals(COMMAND_TODO)) {
+        switch (command) {
+        case TODO:
             return new Todo(argument);
-        }
-
-        if (command.equals(COMMAND_DEADLINE)) {
+        case DEADLINE:
             // "return book /by Sunday" splits into "return book" and "Sunday".
             String[] parts = splitAtOption(argument, OPTION_BY,
                     "A deadline needs a due date after " + OPTION_BY + ". For example: "
-                            + exampleOf(COMMAND_DEADLINE));
+                            + command.getExample());
             return new Deadline(parts[0], parts[1]);
+        default:
+            // An event needs two separators, so split at "/from" first and then at "/to".
+            String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
+                    + OPTION_TO + ". For example: " + command.getExample();
+            String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
+            String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
+            return new Event(fromParts[0], toParts[0], toParts[1]);
         }
-
-        // An event needs two separators, so split at "/from" first and then at "/to".
-        String eventExample = "An event needs a start after " + OPTION_FROM + " and an end after "
-                + OPTION_TO + ". For example: " + exampleOf(COMMAND_EVENT);
-        String[] fromParts = splitAtOption(argument, OPTION_FROM, eventExample);
-        String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventExample);
-        return new Event(fromParts[0], toParts[0], toParts[1]);
-    }
-
-    /**
-     * Returns a correctly formed example of a command, used to show the user how to fix a mistake.
-     *
-     * @param command the command word to illustrate
-     * @return one line the user could type
-     */
-    private static String exampleOf(String command) {
-        if (command.equals(COMMAND_TODO)) {
-            return "todo borrow book";
-        }
-        if (command.equals(COMMAND_DEADLINE)) {
-            return "deadline return book /by Sunday";
-        }
-        return "event project meeting /from Mon 2pm /to 4pm";
     }
 
     /**
@@ -236,20 +190,20 @@ public class Harvey {
      *
      * @param argument  the text typed after the command word
      * @param taskCount how many tasks are currently stored
-     * @param command   the command word, used to make the error messages specific
+     * @param command   the command being run, used to make the error messages specific
      * @return the zero-based index of the task
      * @throws HarveyException if the argument is missing, is not a number, or names a task
      *                         that does not exist
      */
-    private static int parseTaskNumber(String argument, int taskCount, String command)
+    private static int parseTaskNumber(String argument, int taskCount, Command command)
             throws HarveyException {
         if (argument.isEmpty()) {
-            throw new HarveyException("Tell me which task to " + command
-                    + ". For example: " + command + " 2");
+            throw new HarveyException("Tell me which task to " + command.getKeyword()
+                    + ". For example: " + command.getExample());
         }
         if (taskCount == 0) {
             throw new HarveyException("You have no tasks yet, so there is nothing to "
-                    + command + ".");
+                    + command.getKeyword() + ".");
         }
 
         int index;
@@ -259,7 +213,7 @@ public class Harvey {
             // The user typed something that is not a number, e.g. "mark book".
             // The original exception is not shown to the user; the advice below is more useful.
             throw new HarveyException("\"" + argument + "\" is not a task number. Use the number "
-                    + "shown by list, for example: " + command + " 2");
+                    + "shown by list, for example: " + command.getExample());
         }
 
         if (index < 0 || index >= taskCount) {
