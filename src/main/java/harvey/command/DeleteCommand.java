@@ -1,7 +1,6 @@
 package harvey.command;
 
 import harvey.HarveyException;
-import harvey.parser.Parser;
 import harvey.storage.Storage;
 import harvey.task.Task;
 import harvey.task.TaskList;
@@ -22,7 +21,7 @@ public class DeleteCommand extends Command {
 
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
-        Task removed = tasks.delete(Parser.parseTaskNumber(argument, tasks, CommandType.DELETE));
+        Task removed = tasks.delete(parseTaskNumber(argument, tasks, CommandType.DELETE));
         ui.showReply("Noted. I've removed this task:" + System.lineSeparator()
                 + "  " + removed + System.lineSeparator()
                 + "Now you have " + tasks.size() + " tasks in the list.");

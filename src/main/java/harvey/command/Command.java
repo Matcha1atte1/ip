@@ -39,4 +39,36 @@ public abstract class Command {
     public boolean isExit() {
         return false;
     }
+
+    /**
+     * Converts the argument of a {@code mark} or {@code unmark} command into a task number.
+     * Whether that number names an existing task is checked by {@link TaskList}, which is
+     * the class that knows how long the list is.
+     *
+     * @param argument  the text typed after the command word
+     * @param tasks     the current task list, used to reject a number when it is empty
+     * @param command   the command being run, used to make the error messages specific
+     * @return the task number the user typed, counting from 1
+     * @throws HarveyException if the argument is missing or is not a number
+     */
+    protected static int parseTaskNumber(String argument, TaskList tasks, CommandType command)
+            throws HarveyException {
+        if (argument.isEmpty()) {
+            throw new HarveyException("Tell me which task to " + command.getKeyword()
+                    + ". For example: " + command.getExample());
+        }
+        if (tasks.isEmpty()) {
+            throw new HarveyException("You have no tasks yet, so there is nothing to "
+                    + command.getKeyword() + ".");
+        }
+
+        try {
+            return Integer.parseInt(argument);
+        } catch (NumberFormatException e) {
+            // The user typed something that is not a number, e.g. "mark book".
+            // The original exception is not shown to the user; the advice below is more useful.
+            throw new HarveyException("\"" + argument + "\" is not a task number. Use the number "
+                    + "shown by list, for example: " + command.getExample());
+        }
+    }
 }

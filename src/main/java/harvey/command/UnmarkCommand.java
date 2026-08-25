@@ -1,7 +1,6 @@
 package harvey.command;
 
 import harvey.HarveyException;
-import harvey.parser.Parser;
 import harvey.storage.Storage;
 import harvey.task.Task;
 import harvey.task.TaskList;
@@ -22,7 +21,7 @@ public class UnmarkCommand extends Command {
 
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
-        Task unmarked = tasks.get(Parser.parseTaskNumber(argument, tasks, CommandType.UNMARK));
+        Task unmarked = tasks.get(parseTaskNumber(argument, tasks, CommandType.UNMARK));
         unmarked.markAsNotDone();
         ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
                 + "  " + unmarked);
