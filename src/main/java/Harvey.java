@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 
 /**
  * Entry point of the Harvey chatbot.
@@ -40,9 +39,9 @@ public class Harvey {
         // An ArrayList grows as tasks are added and closes the gap when one is
         // removed, so Harvey no longer needs a fixed capacity or its own counter.
         // It starts as whatever was saved last time rather than empty.
-        ArrayList<Task> tasks;
+        TaskList tasks;
         try {
-            tasks = storage.load();
+            tasks = new TaskList(storage.load());
 
             // Damaged lines are skipped rather than reported one by one, but the user is
             // told that some tasks are missing so the silence is not mistaken for the
@@ -56,7 +55,7 @@ public class Harvey {
             // Being unable to read the saved file is not a reason to refuse to start,
             // so Harvey says what went wrong and carries on with nothing loaded.
             ui.showError(e.getMessage() + " Starting with an empty list.");
-            tasks = new ArrayList<>();
+            tasks = new TaskList();
         }
 
         while (ui.hasNextCommand()) {
@@ -91,21 +90,19 @@ public class Harvey {
                     break;
                 case MARK:
                     // Task numbers shown to the user start at 1, so subtract 1 for the list index.
-                    Task marked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
+                    Task marked = tasks.get(parseTaskNumber(argument, tasks, command));
                     marked.markAsDone();
                     ui.showReply("Nice! I've marked this task as done:" + System.lineSeparator()
                             + "  " + marked);
                     break;
                 case UNMARK:
-                    Task unmarked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
+                    Task unmarked = tasks.get(parseTaskNumber(argument, tasks, command));
                     unmarked.markAsNotDone();
                     ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
                             + "  " + unmarked);
                     break;
                 case DELETE:
-                    // remove() returns the task it took out and shifts the rest down,
-                    // so the remaining tasks stay numbered 1, 2, 3, ... with no gap.
-                    Task removed = tasks.remove(parseTaskNumber(argument, tasks.size(), command));
+                    Task removed = tasks.delete(parseTaskNumber(argument, tasks, command));
                     ui.showReply("Noted. I've removed this task:" + System.lineSeparator()
                             + "  " + removed + System.lineSeparator()
                             + "Now you have " + tasks.size() + " tasks in the list.");
@@ -123,7 +120,7 @@ public class Harvey {
                 // Saving once here, after the switch, covers every command that changed the
                 // list without repeating the call in each branch. LIST reaches this line
                 // too, which harmlessly writes the same content back.
-                storage.save(tasks);
+                storage.save(tasks.asList());
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
                 ui.showError(e.getMessage());
@@ -213,54 +210,49 @@ public class Harvey {
      *
      * @param tasks the stored tasks
      * @return the tasks numbered from 1, one per line
+     * @throws HarveyException never in practice, since only existing numbers are asked for
      */
-    private static String formatTasks(ArrayList<Task> tasks) {
+    private static String formatTasks(TaskList tasks) throws HarveyException {
         StringBuilder list = new StringBuilder();
         for (int i = 0; i < tasks.size(); i++) {
             if (i > 0) {
                 list.append(System.lineSeparator());
             }
             // Task.toString() supplies the "[X] description" part.
-            list.append(i + 1).append('.').append(tasks.get(i));
+            list.append(i + 1).append('.').append(tasks.get(i + 1));
         }
         return list.toString();
     }
 
     /**
-     * Converts the argument of a {@code mark} or {@code unmark} command into a valid array index.
+     * Converts the argument of a {@code mark} or {@code unmark} command into a task number.
+     * Whether that number names an existing task is checked by {@link TaskList}, which is
+     * the class that knows how long the list is.
      *
      * @param argument  the text typed after the command word
-     * @param taskCount how many tasks are currently stored
+     * @param tasks     the current task list, used to reject a number when it is empty
      * @param command   the command being run, used to make the error messages specific
-     * @return the zero-based index of the task
-     * @throws HarveyException if the argument is missing, is not a number, or names a task
-     *                         that does not exist
+     * @return the task number the user typed, counting from 1
+     * @throws HarveyException if the argument is missing or is not a number
      */
-    private static int parseTaskNumber(String argument, int taskCount, Command command)
+    private static int parseTaskNumber(String argument, TaskList tasks, Command command)
             throws HarveyException {
         if (argument.isEmpty()) {
             throw new HarveyException("Tell me which task to " + command.getKeyword()
                     + ". For example: " + command.getExample());
         }
-        if (taskCount == 0) {
+        if (tasks.isEmpty()) {
             throw new HarveyException("You have no tasks yet, so there is nothing to "
                     + command.getKeyword() + ".");
         }
 
-        int index;
         try {
-            index = Integer.parseInt(argument) - 1;
+            return Integer.parseInt(argument);
         } catch (NumberFormatException e) {
             // The user typed something that is not a number, e.g. "mark book".
             // The original exception is not shown to the user; the advice below is more useful.
             throw new HarveyException("\"" + argument + "\" is not a task number. Use the number "
                     + "shown by list, for example: " + command.getExample());
         }
-
-        if (index < 0 || index >= taskCount) {
-            throw new HarveyException("There is no task " + (index + 1) + ". You have "
-                    + taskCount + " task(s), so pick a number from 1 to " + taskCount + ".");
-        }
-        return index;
     }
 }
