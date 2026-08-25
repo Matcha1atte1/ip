@@ -47,80 +47,28 @@ public class Harvey {
         ui.showGreeting();
         tasks = loadTasks();
 
-        while (ui.hasNextCommand()) {
-            String input = ui.readCommand();
+        // The loop no longer names any instruction. Parser decides which command a line
+        // means, the command carries itself out, and the command says whether to stop.
+        boolean isExit = false;
+        while (!isExit && ui.hasNextCommand()) {
+            String fullCommand = ui.readCommand();
 
             // Every step below may reject the input by throwing HarveyException.
             // Catching it here, once, means each step can simply describe what is
             // wrong and stop, instead of passing failure codes back up by hand.
             try {
-                // Turning the typed line into a CommandType up front means the switch below
-                // deals in a fixed set of values rather than in free-form text.
-                CommandType command = Parser.parseCommand(input);
-                String argument = Parser.parseArgument(input);
-
-                if (command == CommandType.BYE) {
-                    break;
-                }
-
-                runCommand(command, argument);
-
-                // Saving once here, after the command has run, covers everything that
-                // changed the list without repeating the call in each branch. LIST reaches
-                // this line too, which harmlessly writes the same content back.
-                storage.save(tasks.asList());
+                Command command = Parser.parse(fullCommand);
+                command.execute(tasks, ui, storage);
+                isExit = command.isExit();
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
                 ui.showError(e.getMessage());
             }
         }
 
+        // Printed here rather than by ExitCommand, so that it also appears when the
+        // input runs out without the user ever typing bye.
         ui.showFarewell();
-    }
-
-    /**
-     * Carries out one command that has already been understood.
-     *
-     * @param command  what the user asked for
-     * @param argument everything typed after the command word
-     * @throws HarveyException if the command cannot be carried out as asked
-     */
-    private void runCommand(CommandType command, String argument) throws HarveyException {
-        switch (command) {
-        case LIST:
-            if (tasks.isEmpty()) {
-                throw new HarveyException("Your list is empty. Add something with, say: "
-                        + CommandType.TODO.getExample());
-            }
-            ui.showTaskList(tasks);
-            break;
-        case MARK:
-            Task marked = tasks.get(Parser.parseTaskNumber(argument, tasks, command));
-            marked.markAsDone();
-            ui.showReply("Nice! I've marked this task as done:" + System.lineSeparator()
-                    + "  " + marked);
-            break;
-        case UNMARK:
-            Task unmarked = tasks.get(Parser.parseTaskNumber(argument, tasks, command));
-            unmarked.markAsNotDone();
-            ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
-                    + "  " + unmarked);
-            break;
-        case DELETE:
-            Task removed = tasks.delete(Parser.parseTaskNumber(argument, tasks, command));
-            ui.showReply("Noted. I've removed this task:" + System.lineSeparator()
-                    + "  " + removed + System.lineSeparator()
-                    + "Now you have " + tasks.size() + " tasks in the list.");
-            break;
-        default:
-            // The three task-creating commands, which differ only inside createTask.
-            Task task = Parser.createTask(command, argument);
-            tasks.add(task);
-            ui.showReply("Got it. I've added this task:" + System.lineSeparator()
-                    + "  " + task + System.lineSeparator()
-                    + "Now you have " + tasks.size() + " tasks in the list.");
-            break;
-        }
     }
 
     /**
