@@ -17,6 +17,13 @@ public class Storage {
     private final Path filePath;
 
     /**
+     * The same separator written as a regular expression, for splitting a line back up.
+     * {@code split} treats its argument as a regex, in which {@code |} means "or", so the
+     * bar has to be escaped as {@code \|} to stand for a literal bar character.
+     */
+    private static final String SEPARATOR_REGEX = " \\| ";
+
+    /**
      * Creates a storage that reads and writes the given file.
      * <p>
      * The path is built with {@link Paths#get(String, String...)} from separate folder and
@@ -66,5 +73,70 @@ public class Storage {
             // reports it through the same channel as every other problem.
             throw new HarveyException("I could not save your tasks to " + filePath + ".");
         }
+    }
+
+    /**
+     * Reads back the tasks previously written by {@link #save(ArrayList)}.
+     * <p>
+     * Note that loading cannot be polymorphic the way saving is. When saving, each task
+     * already exists and can be asked for its own line. When loading there is no task yet
+     * to ask, so something has to read the type letter and decide which subclass to build;
+     * that decision lives here.
+     *
+     * @return the stored tasks, in the order they were written
+     * @throws HarveyException if the file cannot be read
+     */
+    public ArrayList<Task> load() throws HarveyException {
+        ArrayList<Task> tasks = new ArrayList<>();
+
+        // The file is absent the first time anyone runs Harvey, which is normal rather
+        // than a failure, so an empty list is returned instead of an error being raised.
+        if (!Files.exists(filePath)) {
+            return tasks;
+        }
+
+        try {
+            for (String line : Files.readAllLines(filePath)) {
+                tasks.add(toTask(line));
+            }
+        } catch (IOException e) {
+            throw new HarveyException("I could not read your saved tasks from " + filePath + ".");
+        }
+        return tasks;
+    }
+
+    /**
+     * Rebuilds one task from one line of the save file, reversing {@code toFileFormat}.
+     *
+     * @param line a line such as {@code D | 0 | return book | Sunday}
+     * @return the task that line describes
+     */
+    private static Task toTask(String line) {
+        // ["D", "0", "return book", "Sunday"] for the example above. The number of fields
+        // depends on the task type, so they are read by position below.
+        String[] fields = line.split(SEPARATOR_REGEX);
+        String typeLetter = fields[0];
+        String doneFlag = fields[1];
+        String description = fields[2];
+
+        Task task;
+        switch (typeLetter) {
+        case "D":
+            task = new Deadline(description, fields[3]);
+            break;
+        case "E":
+            task = new Event(description, fields[3], fields[4]);
+            break;
+        default:
+            task = new Todo(description);
+            break;
+        }
+
+        // Every task is built as not-done, so the stored flag is applied afterwards
+        // rather than being passed through four separate constructors.
+        if (doneFlag.equals("1")) {
+            task.markAsDone();
+        }
+        return task;
     }
 }

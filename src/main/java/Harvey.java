@@ -34,14 +34,23 @@ public class Harvey {
             + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
 
     public static void main(String[] args) {
-        // An ArrayList grows as tasks are added and closes the gap when one is
-        // removed, so Harvey no longer needs a fixed capacity or its own counter.
-        ArrayList<Task> tasks = new ArrayList<>();
-
         // Created once and reused, so the file location is decided in a single place.
         Storage storage = new Storage(DATA_FOLDER, DATA_FILE);
 
         showGreeting();
+
+        // An ArrayList grows as tasks are added and closes the gap when one is
+        // removed, so Harvey no longer needs a fixed capacity or its own counter.
+        // It starts as whatever was saved last time rather than empty.
+        ArrayList<Task> tasks;
+        try {
+            tasks = storage.load();
+        } catch (HarveyException e) {
+            // Being unable to read the saved file is not a reason to refuse to start,
+            // so Harvey says what went wrong and carries on with nothing loaded.
+            showReply("Sorry! " + e.getMessage() + " Starting with an empty list.");
+            tasks = new ArrayList<>();
+        }
 
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
