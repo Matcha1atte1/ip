@@ -1,0 +1,14 @@
+/**
+ * Shows every task currently stored.
+ * The only command that changes nothing, so it is also the only one that does not save.
+ */
+public class ListCommand extends Command {
+    @Override
+    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+        if (tasks.isEmpty()) {
+            throw new HarveyException("Your list is empty. Add something with, say: "
+                    + CommandType.TODO.getExample());
+        }
+        ui.showTaskList(tasks);
+    }
+}

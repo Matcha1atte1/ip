@@ -1,0 +1,23 @@
+/** Marks one task as not completed after all. */
+public class UnmarkCommand extends Command {
+    /** The task number the user typed, still unchecked. */
+    private final String argument;
+
+    /**
+     * Creates a command that will mark one task as not done.
+     *
+     * @param argument the task number, as typed
+     */
+    public UnmarkCommand(String argument) {
+        this.argument = argument;
+    }
+
+    @Override
+    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+        Task unmarked = tasks.get(Parser.parseTaskNumber(argument, tasks, CommandType.UNMARK));
+        unmarked.markAsNotDone();
+        ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
+                + "  " + unmarked);
+        storage.save(tasks.asList());
+    }
+}

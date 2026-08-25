@@ -1,93 +1,36 @@
 /**
- * The set of instructions Harvey understands.
+ * One instruction from the user, in a form that can carry itself out.
  * <p>
- * Each constant carries the keyword the user types and one correct example of the
- * command in use, so the keyword and its help text cannot drift apart. Using an enum
- * instead of separate {@code String} constants means the compiler knows the full list:
- * a misspelt {@code Command.DEADLIEN} will not compile, whereas a misspelt string
- * would silently never match.
+ * Previously {@link Harvey} held a switch that named every instruction and spelled out
+ * what each one did. Each branch of that switch is now its own subclass, so the code for
+ * an instruction sits in one place with a name on it, and adding another instruction means
+ * adding a class rather than editing a growing switch.
+ * <p>
+ * This is an abstract class rather than an interface because {@link #isExit()} has a
+ * sensible default that almost every subclass wants to inherit unchanged.
  */
-public enum Command {
-    BYE("bye", "bye"),
-    LIST("list", "list"),
-    MARK("mark", "mark 2"),
-    UNMARK("unmark", "unmark 2"),
-    DELETE("delete", "delete 3"),
-    TODO("todo", "todo borrow book"),
-    DEADLINE("deadline", "deadline return book /by 2019-10-15"),
-    EVENT("event", "event project meeting /from Mon 2pm /to 4pm");
-
-    /** The word the user types to invoke this command. */
-    private final String keyword;
-
-    /** A correctly formed use of this command, shown to the user after a mistake. */
-    private final String example;
+public abstract class Command {
+    /**
+     * Carries out this instruction.
+     * <p>
+     * The three collaborators are passed in rather than stored, so a command holds only
+     * what the user typed and can be created without knowing which task list or file it
+     * will eventually act on.
+     *
+     * @param tasks   the task list to read or change
+     * @param ui      used to tell the user what happened
+     * @param storage used to save the list if this command changed it
+     * @throws HarveyException if the instruction cannot be carried out as asked
+     */
+    public abstract void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException;
 
     /**
-     * Creates a command. Enum constructors are always private: the constants listed
-     * above are the only instances that will ever exist.
+     * Returns whether Harvey should stop after this command.
+     * Only {@link ExitCommand} overrides this, so the default is to keep going.
      *
-     * @param keyword the word the user types
-     * @param example a correct use of the command
+     * @return true if this command ends the session
      */
-    Command(String keyword, String example) {
-        this.keyword = keyword;
-        this.example = example;
-    }
-
-    /**
-     * Returns the word the user types to invoke this command.
-     *
-     * @return the keyword, e.g. {@code delete}
-     */
-    public String getKeyword() {
-        return keyword;
-    }
-
-    /**
-     * Returns a correct use of this command, for showing the user how to fix a mistake.
-     *
-     * @return one line the user could type, e.g. {@code delete 3}
-     */
-    public String getExample() {
-        return example;
-    }
-
-    /**
-     * Finds the command a keyword refers to.
-     *
-     * @param keyword the first word the user typed
-     * @return the matching command
-     * @throws HarveyException if no command uses that keyword
-     */
-    public static Command fromKeyword(String keyword) throws HarveyException {
-        // values() returns every constant declared above, so this loop automatically
-        // covers any command added later.
-        for (Command command : values()) {
-            if (command.keyword.equals(keyword)) {
-                return command;
-            }
-        }
-
-        if (keyword.isEmpty()) {
-            throw new HarveyException("You did not type anything. " + listKeywords());
-        }
-        throw new HarveyException("I don't recognise the command \"" + keyword + "\". " + listKeywords());
-    }
-
-    /**
-     * Lists every keyword Harvey understands, for use in error messages.
-     *
-     * @return a sentence naming all the commands
-     */
-    public static String listKeywords() {
-        StringBuilder keywords = new StringBuilder("I understand: ");
-        for (int i = 0; i < values().length; i++) {
-            if (i > 0) {
-                keywords.append(", ");
-            }
-            keywords.append(values()[i].keyword);
-        }
-        return keywords.append('.').toString();
+    public boolean isExit() {
+        return false;
     }
 }
