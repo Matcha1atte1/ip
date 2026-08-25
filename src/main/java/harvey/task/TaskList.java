@@ -24,7 +24,7 @@ public class TaskList {
     /**
      * Creates a list holding tasks that were loaded from somewhere, e.g. the save file.
      *
-     * @param tasks the tasks to start with
+     * @param tasks the tasks to start with.
      */
     public TaskList(ArrayList<Task> tasks) {
         this.tasks = tasks;
@@ -33,7 +33,7 @@ public class TaskList {
     /**
      * Adds a task to the end of the list.
      *
-     * @param task the task to add
+     * @param task the task to add.
      */
     public void add(Task task) {
         tasks.add(task);
@@ -42,9 +42,9 @@ public class TaskList {
     /**
      * Returns the task the user refers to by number.
      *
-     * @param taskNumber the number shown by {@code list}, counting from 1
-     * @return the task with that number
-     * @throws HarveyException if there is no task with that number
+     * @param taskNumber the number shown by {@code list}, counting from 1.
+     * @return the task with that number.
+     * @throws HarveyException if there is no task with that number.
      */
     public Task get(int taskNumber) throws HarveyException {
         return tasks.get(toIndex(taskNumber));
@@ -55,9 +55,9 @@ public class TaskList {
      * The tasks after it shift down, so the remaining ones stay numbered 1, 2, 3, ...
      * with no gap.
      *
-     * @param taskNumber the number shown by {@code list}, counting from 1
-     * @return the task that was removed
-     * @throws HarveyException if there is no task with that number
+     * @param taskNumber the number shown by {@code list}, counting from 1.
+     * @return the task that was removed.
+     * @throws HarveyException if there is no task with that number.
      */
     public Task delete(int taskNumber) throws HarveyException {
         return tasks.remove(toIndex(taskNumber));
@@ -66,7 +66,7 @@ public class TaskList {
     /**
      * Returns how many tasks are stored.
      *
-     * @return the number of tasks
+     * @return the number of tasks.
      */
     public int size() {
         return tasks.size();
@@ -75,7 +75,7 @@ public class TaskList {
     /**
      * Returns whether there are no tasks at all.
      *
-     * @return true if the list is empty
+     * @return true if the list is empty.
      */
     public boolean isEmpty() {
         return tasks.isEmpty();
@@ -89,7 +89,7 @@ public class TaskList {
      * making {@code TaskList} implement {@code Iterable}, would close that hole; neither
      * is worth the extra machinery while the only callers are display and saving.
      *
-     * @return the tasks in order
+     * @return the tasks in order.
      */
     public ArrayList<Task> asList() {
         return tasks;
@@ -98,9 +98,9 @@ public class TaskList {
     /**
      * Converts a task number as the user says it into a position in the list.
      *
-     * @param taskNumber the number shown by {@code list}, counting from 1
-     * @return the matching index, counting from 0
-     * @throws HarveyException if the number names a task that does not exist
+     * @param taskNumber the number shown by {@code list}, counting from 1.
+     * @return the matching index, counting from 0.
+     * @throws HarveyException if the number names a task that does not exist.
      */
     private int toIndex(int taskNumber) throws HarveyException {
         if (taskNumber < 1 || taskNumber > tasks.size()) {

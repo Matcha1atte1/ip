@@ -37,8 +37,8 @@ public class AddCommand extends Command {
     /**
      * Creates a command that will add one task.
      *
-     * @param type     the instruction typed, one of {@code TODO}, {@code DEADLINE} or {@code EVENT}
-     * @param argument the description and any dates, as typed
+     * @param type     the instruction typed, one of {@code TODO}, {@code DEADLINE} or {@code EVENT}.
+     * @param argument the description and any dates, as typed.
      */
     public AddCommand(CommandType type, String argument) {
         this.type = type;
@@ -64,10 +64,10 @@ public class AddCommand extends Command {
      * version.
      *
      * @param command  the command that was typed, one of {@link CommandType#TODO},
-     *                 {@link CommandType#DEADLINE} or {@link CommandType#EVENT}
-     * @param argument everything typed after the command word
-     * @return the new task
-     * @throws HarveyException if the description or any required date is missing
+     *                 {@link CommandType#DEADLINE} or {@link CommandType#EVENT}.
+     * @param argument everything typed after the command word.
+     * @return the new task.
+     * @throws HarveyException if the description or any required date is missing.
      */
     private static Task createTask(CommandType command, String argument) throws HarveyException {
         if (argument.isEmpty()) {
@@ -109,11 +109,11 @@ public class AddCommand extends Command {
     /**
      * Splits text at the first occurrence of an option such as {@code /by}.
      *
-     * @param text            the text to split
-     * @param option          the option to split at
-     * @param errorMessage    the explanation to show the user if the split is not possible
-     * @return the text before and after the option
-     * @throws HarveyException if the option is absent or either side of it is empty
+     * @param text            the text to split.
+     * @param option          the option to split at.
+     * @param errorMessage    the explanation to show the user if the split is not possible.
+     * @return the text before and after the option.
+     * @throws HarveyException if the option is absent or either side of it is empty.
      */
     private static String[] splitAtOption(String text, String option, String errorMessage)
             throws HarveyException {

@@ -13,7 +13,7 @@ public class DeleteCommand extends Command {
     /**
      * Creates a command that will remove one task.
      *
-     * @param argument the task number, as typed
+     * @param argument the task number, as typed.
      */
     public DeleteCommand(String argument) {
         this.argument = argument;

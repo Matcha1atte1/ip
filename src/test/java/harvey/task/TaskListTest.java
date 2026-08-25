@@ -13,7 +13,7 @@ import harvey.HarveyException;
 /**
  * Tests {@link TaskList}.
  * <p>
- * The interesting behaviour here is the numbering. The user counts tasks from 1 and the
+ * The interesting behavior here is the numbering. The user counts tasks from 1 and the
  * underlying list counts from 0, so the boundaries either side of the valid range are
  * where an off-by-one error would show up. Those cases get the most attention below.
  */

@@ -13,7 +13,7 @@ public class MarkCommand extends Command {
     /**
      * Creates a command that will mark one task as done.
      *
-     * @param argument the task number, as typed
+     * @param argument the task number, as typed.
      */
     public MarkCommand(String argument) {
         this.argument = argument;

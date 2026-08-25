@@ -41,8 +41,8 @@ public class Harvey {
      * left to {@link #run()} so that the greeting can be shown before any complaint about
      * the save file, which would otherwise appear above it.
      *
-     * @param folderName the folder holding the save file
-     * @param fileName   the name of the save file
+     * @param folderName the folder holding the save file.
+     * @param fileName   the name of the save file.
      */
     public Harvey(String folderName, String fileName) {
         this.ui = new Ui();
@@ -82,7 +82,7 @@ public class Harvey {
      * Reads the saved tasks, reporting anything that went wrong rather than refusing
      * to start.
      *
-     * @return the saved tasks, or an empty list if the file could not be read
+     * @return the saved tasks, or an empty list if the file could not be read.
      */
     private TaskList loadTasks() {
         try {
@@ -108,7 +108,7 @@ public class Harvey {
     /**
      * Starts the chatbot.
      *
-     * @param args not used
+     * @param args not used.
      */
     public static void main(String[] args) {
         new Harvey(DATA_FOLDER, DATA_FILE).run();

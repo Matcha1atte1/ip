@@ -31,8 +31,8 @@ public class Deadline extends Task {
     /**
      * Creates a deadline that is not done yet.
      *
-     * @param description the text describing the task
-     * @param by          when the task is due
+     * @param description the text describing the task.
+     * @param by          when the task is due.
      */
     public Deadline(String description, LocalDate by) {
         super(description);
@@ -46,9 +46,9 @@ public class Deadline extends Task {
      * what a valid date looks like is shared by both the command parser and the save file
      * reader instead of being written out twice.
      *
-     * @param text the date as typed, expected in {@code yyyy-mm-dd} form
-     * @return the date it represents
-     * @throws HarveyException if the text is not a date in that form
+     * @param text the date as typed, expected in {@code yyyy-mm-dd} form.
+     * @return the date it represents.
+     * @throws HarveyException if the text is not a date in that form.
      */
     public static LocalDate parseDate(String text) throws HarveyException {
         try {

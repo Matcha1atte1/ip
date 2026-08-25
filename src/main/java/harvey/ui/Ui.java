@@ -38,7 +38,7 @@ public class Ui {
      * Returns whether the user has typed anything more.
      * This is false once input runs out, e.g. the user pressed Ctrl-D.
      *
-     * @return true if there is another line to read
+     * @return true if there is another line to read.
      */
     public boolean hasNextCommand() {
         return scanner.hasNextLine();
@@ -49,7 +49,7 @@ public class Ui {
      * Trimming here means stray spaces around the input do not hide the command word,
      * so no caller has to remember to do it.
      *
-     * @return the line, without surrounding spaces
+     * @return the line, without surrounding spaces.
      */
     public String readCommand() {
         return scanner.nextLine().trim();
@@ -68,7 +68,7 @@ public class Ui {
      * Prints a single reply from Harvey, wrapped in a divider so it stands out
      * from the lines the user typed.
      *
-     * @param message the text to show to the user
+     * @param message the text to show to the user.
      */
     public void showReply(String message) {
         System.out.println(message);
@@ -80,7 +80,7 @@ public class Ui {
      * Callers pass only the explanation; the apology in front is added here so that
      * every error reads the same way.
      *
-     * @param message what went wrong, phrased for the user
+     * @param message what went wrong, phrased for the user.
      */
     public void showError(String message) {
         showReply(ERROR_PREFIX + message);
@@ -97,7 +97,7 @@ public class Ui {
      * The numbering is display, not storage, so it is done here rather than in
      * {@link TaskList}: the list itself has no opinion about how it should look.
      *
-     * @param tasks the tasks to show, assumed not empty
+     * @param tasks the tasks to show, assumed not empty.
      */
     public void showTaskList(TaskList tasks) {
         StringBuilder message = new StringBuilder("Here are the tasks in your list:");
