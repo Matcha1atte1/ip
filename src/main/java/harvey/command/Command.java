@@ -1,3 +1,9 @@
+package harvey.command;
+
+import harvey.HarveyException;
+import harvey.storage.Storage;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 /**
  * One instruction from the user, in a form that can carry itself out.
  * <p>

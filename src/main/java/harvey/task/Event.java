@@ -1,3 +1,4 @@
+package harvey.task;
 /**
  * A task that runs from one point in time to another,
  * e.g. {@code project meeting (from: Mon 2pm to: 4pm)}.

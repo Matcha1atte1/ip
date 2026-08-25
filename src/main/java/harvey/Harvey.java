@@ -1,3 +1,10 @@
+package harvey;
+
+import harvey.command.Command;
+import harvey.parser.Parser;
+import harvey.storage.Storage;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 /**
  * The Harvey chatbot.
  * <p>

@@ -1,3 +1,11 @@
+package harvey.command;
+
+import harvey.HarveyException;
+import harvey.parser.Parser;
+import harvey.storage.Storage;
+import harvey.task.Task;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 /** Removes one task from the list. */
 public class DeleteCommand extends Command {
     /** The task number the user typed, still unchecked. */

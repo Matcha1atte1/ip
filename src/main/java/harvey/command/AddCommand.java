@@ -1,3 +1,11 @@
+package harvey.command;
+
+import harvey.HarveyException;
+import harvey.parser.Parser;
+import harvey.storage.Storage;
+import harvey.task.Task;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 /**
  * Adds a new task to the list.
  * Covers {@code todo}, {@code deadline} and {@code event}, which differ only in how the

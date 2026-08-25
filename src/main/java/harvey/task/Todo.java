@@ -1,3 +1,4 @@
+package harvey.task;
 /**
  * A task with no date or time attached to it, e.g. {@code borrow book}.
  * Adds nothing to {@link Task} except the {@code [T]} type marker.
