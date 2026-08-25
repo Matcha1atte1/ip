@@ -1,3 +1,8 @@
+package harvey.command;
+
+import harvey.storage.Storage;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 /**
  * Ends the session.
  * <p>

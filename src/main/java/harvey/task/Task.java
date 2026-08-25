@@ -1,3 +1,4 @@
+package harvey.task;
 /**
  * A single task in Harvey's list.
  * Bundles a task's description together with whether it has been completed,

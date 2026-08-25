@@ -1,3 +1,4 @@
+package harvey;
 /**
  * Signals that Harvey understood the user well enough to know the input is wrong,
  * but cannot carry it out — for example a {@code todo} with no description.

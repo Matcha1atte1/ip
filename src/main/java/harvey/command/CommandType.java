@@ -1,3 +1,6 @@
+package harvey.command;
+
+import harvey.HarveyException;
 /**
  * The set of instructions Harvey understands, and how each one is written.
  * <p>
