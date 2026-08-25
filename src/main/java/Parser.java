@@ -2,7 +2,7 @@
  * Works out what the user meant by what they typed.
  * <p>
  * Everything here turns text into something the rest of the program can act on: a
- * {@link Command}, a task number, or a {@link Task}. Keeping it in one class means the
+ * {@link CommandType}, a task number, or a {@link Task}. Keeping it in one class means the
  * rules about what counts as valid input, and the phrasing used to explain a mistake,
  * are all in one file rather than mixed in with the code that carries the command out.
  * <p>
@@ -32,8 +32,8 @@ public class Parser {
      * @return the command that line invokes
      * @throws HarveyException if the first word is not a command Harvey knows
      */
-    public static Command parseCommand(String input) throws HarveyException {
-        return Command.fromKeyword(splitOffKeyword(input)[0]);
+    public static CommandType parseCommand(String input) throws HarveyException {
+        return CommandType.fromKeyword(splitOffKeyword(input)[0]);
     }
 
     /**
@@ -67,16 +67,16 @@ public class Parser {
      * later calls {@code toString()} on the stored task and each subclass supplies its own
      * version.
      *
-     * @param command  the command that was typed, one of {@link Command#TODO},
-     *                 {@link Command#DEADLINE} or {@link Command#EVENT}
+     * @param command  the command that was typed, one of {@link CommandType#TODO},
+     *                 {@link CommandType#DEADLINE} or {@link CommandType#EVENT}
      * @param argument everything typed after the command word
      * @return the new task
      * @throws HarveyException if the description or any required date is missing
      */
-    public static Task createTask(Command command, String argument) throws HarveyException {
+    public static Task createTask(CommandType command, String argument) throws HarveyException {
         if (argument.isEmpty()) {
             // "event" starts with a vowel, so it needs "An" rather than "A".
-            String article = (command == Command.EVENT) ? "An " : "A ";
+            String article = (command == CommandType.EVENT) ? "An " : "A ";
             throw new HarveyException(article + command.getKeyword() + " needs a description. "
                     + "For example: " + command.getExample());
         }
@@ -145,7 +145,7 @@ public class Parser {
      * @return the task number the user typed, counting from 1
      * @throws HarveyException if the argument is missing or is not a number
      */
-    public static int parseTaskNumber(String argument, TaskList tasks, Command command)
+    public static int parseTaskNumber(String argument, TaskList tasks, CommandType command)
             throws HarveyException {
         if (argument.isEmpty()) {
             throw new HarveyException("Tell me which task to " + command.getKeyword()

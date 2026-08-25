@@ -1,13 +1,13 @@
 /**
- * The set of instructions Harvey understands.
+ * The set of instructions Harvey understands, and how each one is written.
  * <p>
  * Each constant carries the keyword the user types and one correct example of the
  * command in use, so the keyword and its help text cannot drift apart. Using an enum
  * instead of separate {@code String} constants means the compiler knows the full list:
- * a misspelt {@code Command.DEADLIEN} will not compile, whereas a misspelt string
+ * a misspelt {@code CommandType.DEADLIEN} will not compile, whereas a misspelt string
  * would silently never match.
  */
-public enum Command {
+public enum CommandType {
     BYE("bye", "bye"),
     LIST("list", "list"),
     MARK("mark", "mark 2"),
@@ -30,7 +30,7 @@ public enum Command {
      * @param keyword the word the user types
      * @param example a correct use of the command
      */
-    Command(String keyword, String example) {
+    CommandType(String keyword, String example) {
         this.keyword = keyword;
         this.example = example;
     }
@@ -60,10 +60,10 @@ public enum Command {
      * @return the matching command
      * @throws HarveyException if no command uses that keyword
      */
-    public static Command fromKeyword(String keyword) throws HarveyException {
+    public static CommandType fromKeyword(String keyword) throws HarveyException {
         // values() returns every constant declared above, so this loop automatically
         // covers any command added later.
-        for (Command command : values()) {
+        for (CommandType command : values()) {
             if (command.keyword.equals(keyword)) {
                 return command;
             }

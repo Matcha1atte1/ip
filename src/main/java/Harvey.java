@@ -54,12 +54,12 @@ public class Harvey {
             // Catching it here, once, means each step can simply describe what is
             // wrong and stop, instead of passing failure codes back up by hand.
             try {
-                // Turning the typed line into a Command up front means the switch below
+                // Turning the typed line into a CommandType up front means the switch below
                 // deals in a fixed set of values rather than in free-form text.
-                Command command = Parser.parseCommand(input);
+                CommandType command = Parser.parseCommand(input);
                 String argument = Parser.parseArgument(input);
 
-                if (command == Command.BYE) {
+                if (command == CommandType.BYE) {
                     break;
                 }
 
@@ -85,12 +85,12 @@ public class Harvey {
      * @param argument everything typed after the command word
      * @throws HarveyException if the command cannot be carried out as asked
      */
-    private void runCommand(Command command, String argument) throws HarveyException {
+    private void runCommand(CommandType command, String argument) throws HarveyException {
         switch (command) {
         case LIST:
             if (tasks.isEmpty()) {
                 throw new HarveyException("Your list is empty. Add something with, say: "
-                        + Command.TODO.getExample());
+                        + CommandType.TODO.getExample());
             }
             ui.showTaskList(tasks);
             break;
