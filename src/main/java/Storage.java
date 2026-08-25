@@ -168,7 +168,9 @@ public class Storage {
             break;
         case "D":
             requireFieldCount(fields, 4, line);
-            task = new Deadline(description, fields[3]);
+            // Reusing parseDate means a hand-edited date in the file is caught the same
+            // way as a mistyped one, and is skipped as a damaged line.
+            task = new Deadline(description, Deadline.parseDate(fields[3]));
             break;
         case "E":
             requireFieldCount(fields, 5, line);
