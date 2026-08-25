@@ -21,4 +21,13 @@ public class Todo extends Task {
     public String toString() {
         return "[T]" + super.toString();
     }
+
+    /**
+     * {@inheritDoc}
+     * Prefixes the {@code T} type letter, giving e.g. {@code T | 0 | borrow book}.
+     */
+    @Override
+    public String toFileFormat() {
+        return "T | " + super.toFileFormat();
+    }
 }

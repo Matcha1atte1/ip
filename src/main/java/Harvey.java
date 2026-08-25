@@ -11,6 +11,12 @@ public class Harvey {
     /** Horizontal line used to separate Harvey's replies from the user's input. */
     private static final String DIVIDER = "____________________________________________________________";
 
+    /** Folder holding the save file, relative to the folder the program is started from. */
+    private static final String DATA_FOLDER = "data";
+
+    /** Name of the save file inside {@link #DATA_FOLDER}. */
+    private static final String DATA_FILE = "harvey.txt";
+
     /** Separator that introduces the due date of a deadline. */
     private static final String OPTION_BY = "/by";
 
@@ -31,6 +37,9 @@ public class Harvey {
         // An ArrayList grows as tasks are added and closes the gap when one is
         // removed, so Harvey no longer needs a fixed capacity or its own counter.
         ArrayList<Task> tasks = new ArrayList<>();
+
+        // Created once and reused, so the file location is decided in a single place.
+        Storage storage = new Storage(DATA_FOLDER, DATA_FILE);
 
         showGreeting();
 
@@ -96,6 +105,11 @@ public class Harvey {
                             + "Now you have " + tasks.size() + " tasks in the list.");
                     break;
                 }
+
+                // Saving once here, after the switch, covers every command that changed the
+                // list without repeating the call in each branch. LIST reaches this line
+                // too, which harmlessly writes the same content back.
+                storage.save(tasks);
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
                 showReply("Sorry! " + e.getMessage());
