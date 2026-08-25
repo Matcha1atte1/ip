@@ -86,7 +86,7 @@ public class ParserTest {
     }
 
     @Test
-    public void parse_keywordFollowedByExtraSpaces_stillRecognised() throws HarveyException {
+    public void parse_keywordFollowedByExtraSpaces_stillRecognized() throws HarveyException {
         // Ui trims the ends of the line, but spaces between the keyword and the
         // argument are left for the parser to cope with.
         assertInstanceOf(AddCommand.class, Parser.parse("todo    read book"));

@@ -30,8 +30,8 @@ public enum CommandType {
      * Creates a command. Enum constructors are always private: the constants listed
      * above are the only instances that will ever exist.
      *
-     * @param keyword the word the user types
-     * @param example a correct use of the command
+     * @param keyword the word the user types.
+     * @param example a correct use of the command.
      */
     CommandType(String keyword, String example) {
         this.keyword = keyword;
@@ -41,7 +41,7 @@ public enum CommandType {
     /**
      * Returns the word the user types to invoke this command.
      *
-     * @return the keyword, e.g. {@code delete}
+     * @return the keyword, e.g. {@code delete}.
      */
     public String getKeyword() {
         return keyword;
@@ -50,7 +50,7 @@ public enum CommandType {
     /**
      * Returns a correct use of this command, for showing the user how to fix a mistake.
      *
-     * @return one line the user could type, e.g. {@code delete 3}
+     * @return one line the user could type, e.g. {@code delete 3}.
      */
     public String getExample() {
         return example;
@@ -59,9 +59,9 @@ public enum CommandType {
     /**
      * Finds the command a keyword refers to.
      *
-     * @param keyword the first word the user typed
-     * @return the matching command
-     * @throws HarveyException if no command uses that keyword
+     * @param keyword the first word the user typed.
+     * @return the matching command.
+     * @throws HarveyException if no command uses that keyword.
      */
     public static CommandType fromKeyword(String keyword) throws HarveyException {
         // values() returns every constant declared above, so this loop automatically
@@ -81,7 +81,7 @@ public enum CommandType {
     /**
      * Lists every keyword Harvey understands, for use in error messages.
      *
-     * @return a sentence naming all the commands
+     * @return a sentence naming all the commands.
      */
     public static String listKeywords() {
         StringBuilder keywords = new StringBuilder("I understand: ");

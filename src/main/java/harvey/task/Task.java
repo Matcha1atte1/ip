@@ -14,7 +14,7 @@ public class Task {
     /**
      * Creates a task that is not done yet.
      *
-     * @param description the text describing the task
+     * @param description the text describing the task.
      */
     public Task(String description) {
         this.description = description;
@@ -24,7 +24,7 @@ public class Task {
     /**
      * Returns the single character shown inside the status box.
      *
-     * @return {@code "X"} if the task is done, otherwise a space
+     * @return {@code "X"} if the task is done, otherwise a space.
      */
     public String getStatusIcon() {
         return (isDone ? "X" : " "); // mark done task with X
@@ -45,7 +45,7 @@ public class Task {
      * Overriding {@code toString} means the task can be printed directly, so the
      * display format lives in one place.
      *
-     * @return the status box followed by the description
+     * @return the status box followed by the description.
      */
     @Override
     public String toString() {
@@ -60,7 +60,7 @@ public class Task {
      * are free to change independently. Each subclass adds its own type letter in front and
      * any extra fields at the end.
      *
-     * @return the done flag and description, separated by {@code |}
+     * @return the done flag and description, separated by {@code |}.
      */
     public String toFileFormat() {
         // 1 and 0 are used rather than the "X" and " " of the display form, because a

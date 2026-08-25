@@ -28,9 +28,9 @@ public class Parser {
      * {@link Command} the line means, and hands back something that knows how to carry
      * itself out. The loop therefore never names the individual instructions.
      *
-     * @param fullCommand one line as the user typed it, already trimmed
-     * @return the command that line asks for
-     * @throws HarveyException if the line does not name a command Harvey knows
+     * @param fullCommand one line as the user typed it, already trimmed.
+     * @return the command that line asks for.
+     * @throws HarveyException if the line does not name a command Harvey knows.
      */
     public static Command parse(String fullCommand) throws HarveyException {
         CommandType type = parseCommandType(fullCommand);
@@ -56,9 +56,9 @@ public class Parser {
     /**
      * Finds which command the user typed.
      *
-     * @param input one line as the user typed it, already trimmed
-     * @return the command that line invokes
-     * @throws HarveyException if the first word is not a command Harvey knows
+     * @param input one line as the user typed it, already trimmed.
+     * @return the command that line invokes.
+     * @throws HarveyException if the first word is not a command Harvey knows.
      */
     private static CommandType parseCommandType(String input) throws HarveyException {
         return CommandType.fromKeyword(splitOffKeyword(input)[0]);
@@ -67,8 +67,8 @@ public class Parser {
     /**
      * Returns everything the user typed after the command word.
      *
-     * @param input one line as the user typed it, already trimmed
-     * @return the argument, or an empty string if there was none
+     * @param input one line as the user typed it, already trimmed.
+     * @return the argument, or an empty string if there was none.
      */
     private static String parseArgument(String input) {
         String[] words = splitOffKeyword(input);
@@ -80,8 +80,8 @@ public class Parser {
      * Every command is a single word optionally followed by arguments, so splitting
      * once is enough; the limit of 2 keeps any further spaces inside the argument.
      *
-     * @param input one line as the user typed it
-     * @return an array of one or two parts
+     * @param input one line as the user typed it.
+     * @return an array of one or two parts.
      */
     private static String[] splitOffKeyword(String input) {
         return input.split(" ", 2);

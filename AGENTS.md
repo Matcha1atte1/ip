@@ -51,3 +51,25 @@ writes the save file are.
 **Update the JUnit tests as part of any code change**, in the same commit, so the project
 stays at that target. A change that adds or alters non-trivial behaviour should add or
 alter the tests that cover it; a change that removes behaviour should remove its tests.
+
+## Coding and commit standards
+
+This project follows the SE-EDU standards. Two project skills hold the rules in full,
+in `.claude/skills/`:
+
+* **`seedu-java-coding-standard`** — the SE-EDU Java coding standard (basic and
+  intermediate). Follow it for **all** Java in this project, main and test alike.
+  Load it before writing or editing any Java file.
+* **`seedu-git-standard`** — the SE-EDU Git commit message convention. Follow it for
+  **every** commit message proposed or created here. Load it before writing one.
+
+The points most often got wrong in this codebase:
+
+* 4-space indent, no tabs; soft line limit 110 characters, hard limit 120.
+* Javadoc on every non-private class and method. Blank line before the tag section, and
+  a full stop at the end of every `@param`, `@return` and `@throws` description.
+* Comments and Javadoc use American spelling (`behavior`, `serialize`). Text shown to the
+  user is not a comment — do not change its wording for spelling alone, because that
+  changes program output and breaks the expected-output checks.
+* Commit subjects: imperative, capitalized, no trailing full stop, 50 characters soft and
+  72 hard. Body wrapped at 72, explaining what and why rather than how.

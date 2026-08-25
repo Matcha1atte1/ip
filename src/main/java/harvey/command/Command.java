@@ -23,10 +23,10 @@ public abstract class Command {
      * what the user typed and can be created without knowing which task list or file it
      * will eventually act on.
      *
-     * @param tasks   the task list to read or change
-     * @param ui      used to tell the user what happened
-     * @param storage used to save the list if this command changed it
-     * @throws HarveyException if the instruction cannot be carried out as asked
+     * @param tasks   the task list to read or change.
+     * @param ui      used to tell the user what happened.
+     * @param storage used to save the list if this command changed it.
+     * @throws HarveyException if the instruction cannot be carried out as asked.
      */
     public abstract void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException;
 
@@ -34,7 +34,7 @@ public abstract class Command {
      * Returns whether Harvey should stop after this command.
      * Only {@link ExitCommand} overrides this, so the default is to keep going.
      *
-     * @return true if this command ends the session
+     * @return true if this command ends the session.
      */
     public boolean isExit() {
         return false;
@@ -45,11 +45,11 @@ public abstract class Command {
      * Whether that number names an existing task is checked by {@link TaskList}, which is
      * the class that knows how long the list is.
      *
-     * @param argument  the text typed after the command word
-     * @param tasks     the current task list, used to reject a number when it is empty
-     * @param command   the command being run, used to make the error messages specific
-     * @return the task number the user typed, counting from 1
-     * @throws HarveyException if the argument is missing or is not a number
+     * @param argument  the text typed after the command word.
+     * @param tasks     the current task list, used to reject a number when it is empty.
+     * @param command   the command being run, used to make the error messages specific.
+     * @return the task number the user typed, counting from 1.
+     * @throws HarveyException if the argument is missing or is not a number.
      */
     protected static int parseTaskNumber(String argument, TaskList tasks, CommandType command)
             throws HarveyException {

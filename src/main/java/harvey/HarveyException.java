@@ -19,7 +19,7 @@ public class HarveyException extends Exception {
     /**
      * Creates an exception carrying an explanation meant for the user.
      *
-     * @param message what went wrong and, where useful, how to fix it
+     * @param message what went wrong and, where useful, how to fix it.
      */
     public HarveyException(String message) {
         super(message);

@@ -43,8 +43,8 @@ public class Storage {
      * a relative path, so it is resolved against the project folder rather than pointing at
      * one particular computer's hard disk.
      *
-     * @param folderName the folder holding the file, e.g. {@code data}
-     * @param fileName   the name of the file, e.g. {@code harvey.txt}
+     * @param folderName the folder holding the file, e.g. {@code data}.
+     * @param fileName   the name of the file, e.g. {@code harvey.txt}.
      */
     public Storage(String folderName, String fileName) {
         this.filePath = Paths.get(folderName, fileName);
@@ -57,8 +57,8 @@ public class Storage {
      * place. That is slightly wasteful, but the list is small and it removes any chance of
      * the file drifting out of step with the list held in memory.
      *
-     * @param tasks the tasks to store
-     * @throws HarveyException if the file cannot be written
+     * @param tasks the tasks to store.
+     * @throws HarveyException if the file cannot be written.
      */
     public void save(ArrayList<Task> tasks) throws HarveyException {
         List<String> lines = new ArrayList<>();
@@ -93,8 +93,8 @@ public class Storage {
      * to ask, so something has to read the type letter and decide which subclass to build;
      * that decision lives here.
      *
-     * @return the stored tasks, in the order they were written
-     * @throws HarveyException if the file cannot be read
+     * @return the stored tasks, in the order they were written.
+     * @throws HarveyException if the file cannot be read.
      */
     public ArrayList<Task> load() throws HarveyException {
         ArrayList<Task> tasks = new ArrayList<>();
@@ -135,7 +135,7 @@ public class Storage {
      * understand. A tidier design would return one object holding both the tasks and the
      * count, but that is more machinery than a single number needs here.
      *
-     * @return the number of damaged lines skipped, or {@code 0} if the file was intact
+     * @return the number of damaged lines skipped, or {@code 0} if the file was intact.
      */
     public int getSkippedLines() {
         return skippedLines;
@@ -149,9 +149,9 @@ public class Storage {
      * unexpected is reported as a {@link HarveyException} for the caller to deal with,
      * rather than being allowed to reach the array or the constructors.
      *
-     * @param line a line such as {@code D | 0 | return book | Sunday}
-     * @return the task that line describes
-     * @throws HarveyException if the line is not in the expected format
+     * @param line a line such as {@code D | 0 | return book | Sunday}.
+     * @return the task that line describes.
+     * @throws HarveyException if the line is not in the expected format.
      */
     private static Task toTask(String line) throws HarveyException {
         // ["D", "0", "return book", "Sunday"] for the example above.
@@ -210,10 +210,10 @@ public class Storage {
     /**
      * Checks that a line was split into exactly the number of fields its type needs.
      *
-     * @param fields   the fields the line was split into
-     * @param expected how many fields this type of task should have
-     * @param line     the original line, for use in the error message
-     * @throws HarveyException if the count does not match
+     * @param fields   the fields the line was split into.
+     * @param expected how many fields this type of task should have.
+     * @param line     the original line, for use in the error message.
+     * @throws HarveyException if the count does not match.
      */
     private static void requireFieldCount(String[] fields, int expected, String line)
             throws HarveyException {

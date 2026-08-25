@@ -13,7 +13,7 @@ public class UnmarkCommand extends Command {
     /**
      * Creates a command that will mark one task as not done.
      *
-     * @param argument the task number, as typed
+     * @param argument the task number, as typed.
      */
     public UnmarkCommand(String argument) {
         this.argument = argument;
