@@ -181,7 +181,9 @@ public class Harvey {
             String[] parts = splitAtOption(argument, OPTION_BY,
                     "A deadline needs a due date after " + OPTION_BY + ". For example: "
                             + command.getExample());
-            return new Deadline(parts[0], parts[1]);
+            // parseDate rejects anything that is not a real date, so a Deadline can never
+            // be built holding text that only looks like one.
+            return new Deadline(parts[0], Deadline.parseDate(parts[1]));
         default:
             // An event needs two separators, so split at "/from" first and then at "/to".
             String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "

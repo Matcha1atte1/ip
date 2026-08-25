@@ -14,7 +14,7 @@ public enum Command {
     UNMARK("unmark", "unmark 2"),
     DELETE("delete", "delete 3"),
     TODO("todo", "todo borrow book"),
-    DEADLINE("deadline", "deadline return book /by Sunday"),
+    DEADLINE("deadline", "deadline return book /by 2019-10-15"),
     EVENT("event", "event project meeting /from Mon 2pm /to 4pm");
 
     /** The word the user types to invoke this command. */
