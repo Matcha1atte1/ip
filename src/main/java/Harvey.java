@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Entry point of the Harvey chatbot.
@@ -8,9 +7,6 @@ import java.util.Scanner;
  * Input it cannot carry out is reported through {@link HarveyException} instead of crashing.
  */
 public class Harvey {
-    /** Horizontal line used to separate Harvey's replies from the user's input. */
-    private static final String DIVIDER = "____________________________________________________________";
-
     /** Folder holding the save file, relative to the folder the program is started from. */
     private static final String DATA_FOLDER = "data";
 
@@ -32,18 +28,14 @@ public class Harvey {
     /** Separator that introduces the end time of an event. */
     private static final String OPTION_TO = "/to";
 
-    /** ASCII art of the chatbot's name, shown once on startup. */
-    private static final String BANNER = " _   _     _     ____  __     __ _____ __   __\n"
-            + "| | | |   / \\   |  _ \\ \\ \\   / /| ____|\\ \\ / /\n"
-            + "| |_| |  / _ \\  | |_) | \\ \\ / / |  _|   \\ V / \n"
-            + "|  _  | / ___ \\ |  _ <   \\ V /  | |___   | |  \n"
-            + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
-
     public static void main(String[] args) {
         // Created once and reused, so the file location is decided in a single place.
         Storage storage = new Storage(DATA_FOLDER, DATA_FILE);
 
-        showGreeting();
+        // All reading and printing goes through this object from here on.
+        Ui ui = new Ui();
+
+        ui.showGreeting();
 
         // An ArrayList grows as tasks are added and closes the gap when one is
         // removed, so Harvey no longer needs a fixed capacity or its own counter.
@@ -56,21 +48,19 @@ public class Harvey {
             // told that some tasks are missing so the silence is not mistaken for the
             // file having been empty.
             if (storage.getSkippedLines() > 0) {
-                showReply("Sorry! I could not understand " + storage.getSkippedLines()
+                ui.showError("I could not understand " + storage.getSkippedLines()
                         + " line(s) in your saved file, so those tasks were left out. "
                         + "Everything else was loaded.");
             }
         } catch (HarveyException e) {
             // Being unable to read the saved file is not a reason to refuse to start,
             // so Harvey says what went wrong and carries on with nothing loaded.
-            showReply("Sorry! " + e.getMessage() + " Starting with an empty list.");
+            ui.showError(e.getMessage() + " Starting with an empty list.");
             tasks = new ArrayList<>();
         }
 
-        Scanner scanner = new Scanner(System.in);
-        while (scanner.hasNextLine()) {
-            // Trimming here means stray spaces around the input do not hide the command word.
-            String input = scanner.nextLine().trim();
+        while (ui.hasNextCommand()) {
+            String input = ui.readCommand();
 
             // Every command is a single word, optionally followed by arguments,
             // so splitting once here keeps the branches below simple.
@@ -96,27 +86,27 @@ public class Harvey {
                         throw new HarveyException("Your list is empty. Add something with, say: "
                                 + Command.TODO.getExample());
                     }
-                    showReply("Here are the tasks in your list:" + System.lineSeparator()
+                    ui.showReply("Here are the tasks in your list:" + System.lineSeparator()
                             + formatTasks(tasks));
                     break;
                 case MARK:
                     // Task numbers shown to the user start at 1, so subtract 1 for the list index.
                     Task marked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
                     marked.markAsDone();
-                    showReply("Nice! I've marked this task as done:" + System.lineSeparator()
+                    ui.showReply("Nice! I've marked this task as done:" + System.lineSeparator()
                             + "  " + marked);
                     break;
                 case UNMARK:
                     Task unmarked = tasks.get(parseTaskNumber(argument, tasks.size(), command));
                     unmarked.markAsNotDone();
-                    showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
+                    ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
                             + "  " + unmarked);
                     break;
                 case DELETE:
                     // remove() returns the task it took out and shifts the rest down,
                     // so the remaining tasks stay numbered 1, 2, 3, ... with no gap.
                     Task removed = tasks.remove(parseTaskNumber(argument, tasks.size(), command));
-                    showReply("Noted. I've removed this task:" + System.lineSeparator()
+                    ui.showReply("Noted. I've removed this task:" + System.lineSeparator()
                             + "  " + removed + System.lineSeparator()
                             + "Now you have " + tasks.size() + " tasks in the list.");
                     break;
@@ -124,7 +114,7 @@ public class Harvey {
                     // The three task-creating commands, which differ only inside createTask.
                     Task task = createTask(command, argument);
                     tasks.add(task);
-                    showReply("Got it. I've added this task:" + System.lineSeparator()
+                    ui.showReply("Got it. I've added this task:" + System.lineSeparator()
                             + "  " + task + System.lineSeparator()
                             + "Now you have " + tasks.size() + " tasks in the list.");
                     break;
@@ -136,11 +126,11 @@ public class Harvey {
                 storage.save(tasks);
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
-                showReply("Sorry! " + e.getMessage());
+                ui.showError(e.getMessage());
             }
         }
 
-        showReply("Bye. Hope to see you again soon!");
+        ui.showFarewell();
     }
 
     /**
@@ -272,25 +262,5 @@ public class Harvey {
                     + taskCount + " task(s), so pick a number from 1 to " + taskCount + ".");
         }
         return index;
-    }
-
-    /** Prints the banner and welcome message shown when Harvey starts up. */
-    private static void showGreeting() {
-        System.out.println(DIVIDER);
-        System.out.println(BANNER);
-        System.out.println("Hello! I'm Harvey.");
-        System.out.println("What can I do for you?");
-        System.out.println(DIVIDER);
-    }
-
-    /**
-     * Prints a single reply from Harvey, wrapped in dividers so it stands out
-     * from the lines the user typed.
-     *
-     * @param message the text to show to the user
-     */
-    private static void showReply(String message) {
-        System.out.println(message);
-        System.out.println(DIVIDER);
     }
 }
