@@ -6,6 +6,7 @@ import harvey.command.Command;
 import harvey.command.CommandType;
 import harvey.command.DeleteCommand;
 import harvey.command.ExitCommand;
+import harvey.command.FindCommand;
 import harvey.command.ListCommand;
 import harvey.command.MarkCommand;
 import harvey.command.UnmarkCommand;
@@ -41,6 +42,8 @@ public class Parser {
             return new ExitCommand();
         case LIST:
             return new ListCommand();
+        case FIND:
+            return new FindCommand(argument);
         case MARK:
             return new MarkCommand(argument);
         case UNMARK:
