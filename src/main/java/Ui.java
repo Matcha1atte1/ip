@@ -86,4 +86,24 @@ public class Ui {
     public void showFarewell() {
         showReply("Bye. Hope to see you again soon!");
     }
+
+    /**
+     * Prints the stored tasks, numbered from 1 as the user refers to them.
+     * <p>
+     * The numbering is display, not storage, so it is done here rather than in
+     * {@link TaskList}: the list itself has no opinion about how it should look.
+     *
+     * @param tasks the tasks to show, assumed not empty
+     */
+    public void showTaskList(TaskList tasks) {
+        StringBuilder message = new StringBuilder("Here are the tasks in your list:");
+        int taskNumber = 1;
+        for (Task task : tasks.asList()) {
+            // Task.toString() supplies the "[X] description" part.
+            message.append(System.lineSeparator())
+                    .append(taskNumber).append('.').append(task);
+            taskNumber++;
+        }
+        showReply(message.toString());
+    }
 }
