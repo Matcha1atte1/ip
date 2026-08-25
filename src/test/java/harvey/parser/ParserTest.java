@@ -11,6 +11,7 @@ import harvey.command.AddCommand;
 import harvey.command.Command;
 import harvey.command.DeleteCommand;
 import harvey.command.ExitCommand;
+import harvey.command.FindCommand;
 import harvey.command.ListCommand;
 import harvey.command.MarkCommand;
 import harvey.command.UnmarkCommand;
@@ -90,5 +91,16 @@ public class ParserTest {
         // Ui trims the ends of the line, but spaces between the keyword and the
         // argument are left for the parser to cope with.
         assertInstanceOf(AddCommand.class, Parser.parse("todo    read book"));
+    }
+
+    @Test
+    public void parse_find_returnsFindCommand() throws HarveyException {
+        assertInstanceOf(FindCommand.class, Parser.parse("find book"));
+    }
+
+    @Test
+    public void parse_findWithoutKeyword_stillReturnsFindCommand() throws HarveyException {
+        // A missing keyword is FindCommand's to report when it runs.
+        assertInstanceOf(FindCommand.class, Parser.parse("find"));
     }
 }

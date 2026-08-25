@@ -109,4 +109,24 @@ public class TaskList {
         }
         return taskNumber - 1;
     }
+
+    /**
+     * Returns the tasks whose description contains the given keyword.
+     * <p>
+     * The result is a new list, so the matches can be shown without disturbing the
+     * numbering of the real one. That also means marking or deleting is still done
+     * against the full list, using the numbers that {@code list} shows.
+     *
+     * @param keyword the text to look for.
+     * @return a list of the matching tasks, in their original order.
+     */
+    public TaskList find(String keyword) {
+        TaskList matches = new TaskList();
+        for (Task task : tasks) {
+            if (task.hasKeyword(keyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
 }

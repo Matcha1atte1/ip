@@ -13,6 +13,7 @@ import harvey.HarveyException;
 public enum CommandType {
     BYE("bye", "bye"),
     LIST("list", "list"),
+    FIND("find", "find book"),
     MARK("mark", "mark 2"),
     UNMARK("unmark", "unmark 2"),
     DELETE("delete", "delete 3"),

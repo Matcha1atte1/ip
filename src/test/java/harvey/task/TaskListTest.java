@@ -129,4 +129,48 @@ public class TaskListTest {
         assertEquals("[T][ ] a", tasks.asList().get(0).toString());
         assertEquals("[T][ ] c", tasks.asList().get(2).toString());
     }
+
+    @Test
+    public void find_keywordInSomeTasks_returnsOnlyThose() {
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("read book"));
+        tasks.add(new Todo("sports day"));
+        tasks.add(new Todo("return book"));
+
+        TaskList matches = tasks.find("book");
+
+        assertEquals(2, matches.size());
+        assertEquals("[T][ ] read book", matches.asList().get(0).toString());
+        assertEquals("[T][ ] return book", matches.asList().get(1).toString());
+    }
+
+    @Test
+    public void find_keywordInNoTask_returnsEmptyList() {
+        TaskList tasks = threeTasks();
+        assertTrue(tasks.find("nothing here").isEmpty());
+    }
+
+    @Test
+    public void find_onEmptyList_returnsEmptyList() {
+        assertTrue(new TaskList().find("book").isEmpty());
+    }
+
+    @Test
+    public void find_anyKeyword_leavesTheOriginalListUntouched() {
+        // The matches are a separate list, so searching must not renumber or shorten
+        // the real one; mark and delete still work off the numbers list shows.
+        TaskList tasks = threeTasks();
+        tasks.find("a");
+        assertEquals(3, tasks.size());
+    }
+
+    @Test
+    public void find_matchingTask_returnsTheStoredObjectNotACopy() throws HarveyException {
+        // Marking a task found by search must change the task in the real list.
+        TaskList tasks = new TaskList();
+        Todo stored = new Todo("read book");
+        tasks.add(stored);
+
+        assertSame(stored, tasks.find("book").get(1));
+    }
 }

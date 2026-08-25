@@ -100,7 +100,29 @@ public class Ui {
      * @param tasks the tasks to show, assumed not empty.
      */
     public void showTaskList(TaskList tasks) {
-        StringBuilder message = new StringBuilder("Here are the tasks in your list:");
+        showNumberedTasks("Here are the tasks in your list:", tasks);
+    }
+
+    /**
+     * Prints the tasks that matched a search, numbered from 1.
+     * <p>
+     * The numbers count the matches rather than naming positions in the full list, which
+     * is what the worked example in the requirements shows.
+     *
+     * @param tasks the matching tasks, assumed not empty.
+     */
+    public void showMatchingTasks(TaskList tasks) {
+        showNumberedTasks("Here are the matching tasks in your list:", tasks);
+    }
+
+    /**
+     * Prints an opening line followed by the tasks, numbered from 1.
+     *
+     * @param heading the line shown above the tasks.
+     * @param tasks   the tasks to show, assumed not empty.
+     */
+    private void showNumberedTasks(String heading, TaskList tasks) {
+        StringBuilder message = new StringBuilder(heading);
         int taskNumber = 1;
         for (Task task : tasks.asList()) {
             // Task.toString() supplies the "[X] description" part.

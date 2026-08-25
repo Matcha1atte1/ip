@@ -67,4 +67,18 @@ public class Task {
         // space is easy to lose when the line is split back up during loading.
         return (isDone ? "1" : "0") + " | " + description;
     }
+
+    /**
+     * Returns whether this task's description contains the given keyword.
+     * <p>
+     * The comparison ignores case, so searching for "Book" finds "read book". Only the
+     * description is searched, not the dates, because that is what the user is asked to
+     * search by. Asking the task itself keeps the description private to this class.
+     *
+     * @param keyword the text to look for.
+     * @return true if the description contains the keyword.
+     */
+    public boolean hasKeyword(String keyword) {
+        return description.toLowerCase().contains(keyword.toLowerCase());
+    }
 }
