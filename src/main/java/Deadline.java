@@ -27,4 +27,14 @@ public class Deadline extends Task {
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by + ")";
     }
+
+    /**
+     * {@inheritDoc}
+     * Prefixes the {@code D} type letter and appends the due date,
+     * giving e.g. {@code D | 0 | return book | Sunday}.
+     */
+    @Override
+    public String toFileFormat() {
+        return "D | " + super.toFileFormat() + " | " + by;
+    }
 }

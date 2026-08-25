@@ -50,4 +50,20 @@ public class Task {
     public String toString() {
         return "[" + getStatusIcon() + "] " + description;
     }
+
+    /**
+     * Returns the task as one line of the save file, e.g. {@code 1 | read book}.
+     * <p>
+     * This is deliberately separate from {@link #toString()}: the display form is meant for
+     * a person to read, while this form is meant to be read back by the program, so the two
+     * are free to change independently. Each subclass adds its own type letter in front and
+     * any extra fields at the end.
+     *
+     * @return the done flag and description, separated by {@code |}
+     */
+    public String toFileFormat() {
+        // 1 and 0 are used rather than the "X" and " " of the display form, because a
+        // space is easy to lose when the line is split back up during loading.
+        return (isDone ? "1" : "0") + " | " + description;
+    }
 }

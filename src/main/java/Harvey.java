@@ -11,6 +11,18 @@ public class Harvey {
     /** Horizontal line used to separate Harvey's replies from the user's input. */
     private static final String DIVIDER = "____________________________________________________________";
 
+    /** Folder holding the save file, relative to the folder the program is started from. */
+    private static final String DATA_FOLDER = "data";
+
+    /** Name of the save file inside {@link #DATA_FOLDER}. */
+    private static final String DATA_FILE = "harvey.txt";
+
+    /**
+     * Character reserved for separating fields in the save file.
+     * Task text containing it could not be read back, so it is refused on the way in.
+     */
+    private static final String RESERVED_CHARACTER = "|";
+
     /** Separator that introduces the due date of a deadline. */
     private static final String OPTION_BY = "/by";
 
@@ -28,11 +40,32 @@ public class Harvey {
             + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
 
     public static void main(String[] args) {
-        // An ArrayList grows as tasks are added and closes the gap when one is
-        // removed, so Harvey no longer needs a fixed capacity or its own counter.
-        ArrayList<Task> tasks = new ArrayList<>();
+        // Created once and reused, so the file location is decided in a single place.
+        Storage storage = new Storage(DATA_FOLDER, DATA_FILE);
 
         showGreeting();
+
+        // An ArrayList grows as tasks are added and closes the gap when one is
+        // removed, so Harvey no longer needs a fixed capacity or its own counter.
+        // It starts as whatever was saved last time rather than empty.
+        ArrayList<Task> tasks;
+        try {
+            tasks = storage.load();
+
+            // Damaged lines are skipped rather than reported one by one, but the user is
+            // told that some tasks are missing so the silence is not mistaken for the
+            // file having been empty.
+            if (storage.getSkippedLines() > 0) {
+                showReply("Sorry! I could not understand " + storage.getSkippedLines()
+                        + " line(s) in your saved file, so those tasks were left out. "
+                        + "Everything else was loaded.");
+            }
+        } catch (HarveyException e) {
+            // Being unable to read the saved file is not a reason to refuse to start,
+            // so Harvey says what went wrong and carries on with nothing loaded.
+            showReply("Sorry! " + e.getMessage() + " Starting with an empty list.");
+            tasks = new ArrayList<>();
+        }
 
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextLine()) {
@@ -96,6 +129,11 @@ public class Harvey {
                             + "Now you have " + tasks.size() + " tasks in the list.");
                     break;
                 }
+
+                // Saving once here, after the switch, covers every command that changed the
+                // list without repeating the call in each branch. LIST reaches this line
+                // too, which harmlessly writes the same content back.
+                storage.save(tasks);
             } catch (HarveyException e) {
                 // getMessage() returns the explanation the thrower wrote for the user.
                 showReply("Sorry! " + e.getMessage());
@@ -125,6 +163,14 @@ public class Harvey {
             String article = (command == Command.EVENT) ? "An " : "A ";
             throw new HarveyException(article + command.getKeyword() + " needs a description. "
                     + "For example: " + command.getExample());
+        }
+
+        // Checked once here, before the argument is split up, so it covers the description
+        // and every date field of all three task types.
+        if (argument.contains(RESERVED_CHARACTER)) {
+            throw new HarveyException("Please leave out the \"" + RESERVED_CHARACTER
+                    + "\" character. I use it to separate fields when saving your tasks, "
+                    + "so a task containing it could not be loaded back.");
         }
 
         switch (command) {

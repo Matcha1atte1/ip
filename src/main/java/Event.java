@@ -32,4 +32,14 @@ public class Event extends Task {
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
+
+    /**
+     * {@inheritDoc}
+     * Prefixes the {@code E} type letter and appends both times,
+     * giving e.g. {@code E | 0 | project meeting | Mon 2pm | 4pm}.
+     */
+    @Override
+    public String toFileFormat() {
+        return "E | " + super.toFileFormat() + " | " + from + " | " + to;
+    }
 }
