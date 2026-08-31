@@ -20,11 +20,11 @@ public class MarkCommand extends Command {
     }
 
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+    public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task marked = tasks.get(parseTaskNumber(argument, tasks, CommandType.MARK));
         marked.markAsDone();
-        ui.showReply("Nice! I've marked this task as done:" + System.lineSeparator()
-                + "  " + marked);
         storage.save(tasks.asList());
+        return "Nice! I've marked this task as done:" + System.lineSeparator()
+                + "  " + marked;
     }
 }

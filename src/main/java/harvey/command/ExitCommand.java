@@ -6,14 +6,13 @@ import harvey.ui.Ui;
 /**
  * Ends the session.
  * <p>
- * It does nothing when executed: the parting message is printed by {@link Harvey} once the
- * loop has finished, so that it also appears when the input simply runs out and no
- * {@code bye} was ever typed.
+ * Nothing is changed or saved; the command's only effects are the parting message it
+ * returns and the {@code true} from {@link #isExit()}, which tells the caller to stop.
  */
 public class ExitCommand extends Command {
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) {
-        // Nothing to do; isExit() below is the whole of this command's effect.
+    public String execute(TaskList tasks, Ui ui, Storage storage) {
+        return ui.formatFarewell();
     }
 
     @Override

@@ -20,11 +20,11 @@ public class UnmarkCommand extends Command {
     }
 
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+    public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task unmarked = tasks.get(parseTaskNumber(argument, tasks, CommandType.UNMARK));
         unmarked.markAsNotDone();
-        ui.showReply("OK, I've marked this task as not done yet:" + System.lineSeparator()
-                + "  " + unmarked);
         storage.save(tasks.asList());
+        return "OK, I've marked this task as not done yet:" + System.lineSeparator()
+                + "  " + unmarked;
     }
 }

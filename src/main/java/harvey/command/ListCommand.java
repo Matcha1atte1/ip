@@ -10,11 +10,11 @@ import harvey.ui.Ui;
  */
 public class ListCommand extends Command {
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+    public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         if (tasks.isEmpty()) {
             throw new HarveyException("Your list is empty. Add something with, say: "
                     + CommandType.TODO.getExample());
         }
-        ui.showTaskList(tasks);
+        return ui.formatTaskList(tasks);
     }
 }

@@ -5,18 +5,19 @@ import java.util.Scanner;
 import harvey.task.Task;
 import harvey.task.TaskList;
 /**
- * Handles everything Harvey shows the user and everything the user types back.
+ * Owns the wording of everything Harvey says, and the reading of everything the user types.
  * <p>
- * Pulling this out of {@link Harvey} means the rest of the program never calls
- * {@code System.out} or touches a {@link Scanner} directly. Two things follow from that:
- * the wording and layout of Harvey's replies can be changed in one file, and if the
- * chatbot later grows a graphical window, only this class has to be replaced.
+ * The {@code format} methods build a reply and hand it back rather than printing it. That
+ * split is what lets one set of wording serve two front ends: the text interface prints
+ * what it is given, while the graphical interface puts the same text inside a dialog
+ * bubble. Only the handful of {@code print} methods below write to {@code System.out}, and
+ * only the text interface calls them.
  */
 public class Ui {
     /** Horizontal line used to separate Harvey's replies from the user's input. */
     private static final String DIVIDER = "____________________________________________________________";
 
-    /** ASCII art of the chatbot's name, shown once on startup. */
+    /** ASCII art of the chatbot's name. Text interface only; it would not line up in a window. */
     private static final String BANNER = " _   _     _     ____  __     __ _____ __   __\n"
             + "| | | |   / \\   |  _ \\ \\ \\   / /| ____|\\ \\ / /\n"
             + "| |_| |  / _ \\  | |_) | \\ \\ / / |  _|   \\ V / \n"
@@ -55,73 +56,72 @@ public class Ui {
         return scanner.nextLine().trim();
     }
 
-    /** Prints the banner and welcome message shown when Harvey starts up. */
-    public void showGreeting() {
-        System.out.println(DIVIDER);
-        System.out.println(BANNER);
-        System.out.println("Hello! I'm Harvey.");
-        System.out.println("What can I do for you?");
-        System.out.println(DIVIDER);
-    }
-
     /**
-     * Prints a single reply from Harvey, wrapped in a divider so it stands out
-     * from the lines the user typed.
+     * Returns the welcome message shown when Harvey starts up.
+     * The banner is left out because the graphical interface shows this text in a
+     * proportional font, where the ASCII art would not line up.
      *
-     * @param message the text to show to the user.
+     * @return the greeting.
      */
-    public void showReply(String message) {
-        System.out.println(message);
-        System.out.println(DIVIDER);
+    public String formatGreeting() {
+        return "Hello! I'm Harvey." + System.lineSeparator() + "What can I do for you?";
     }
 
     /**
-     * Reports something that went wrong, in the same shape as any other reply.
+     * Returns the parting message shown when the user says goodbye or input runs out.
+     *
+     * @return the farewell.
+     */
+    public String formatFarewell() {
+        return "Bye. Hope to see you again soon!";
+    }
+
+    /**
+     * Returns a report of something that went wrong.
      * Callers pass only the explanation; the apology in front is added here so that
      * every error reads the same way.
      *
      * @param message what went wrong, phrased for the user.
+     * @return the explanation, with the apology in front.
      */
-    public void showError(String message) {
-        showReply(ERROR_PREFIX + message);
-    }
-
-    /** Prints the parting message shown when the user says goodbye or input runs out. */
-    public void showFarewell() {
-        showReply("Bye. Hope to see you again soon!");
+    public String formatError(String message) {
+        return ERROR_PREFIX + message;
     }
 
     /**
-     * Prints the stored tasks, numbered from 1 as the user refers to them.
+     * Returns the stored tasks, numbered from 1 as the user refers to them.
      * <p>
      * The numbering is display, not storage, so it is done here rather than in
      * {@link TaskList}: the list itself has no opinion about how it should look.
      *
      * @param tasks the tasks to show, assumed not empty.
+     * @return the heading followed by the numbered tasks.
      */
-    public void showTaskList(TaskList tasks) {
-        showNumberedTasks("Here are the tasks in your list:", tasks);
+    public String formatTaskList(TaskList tasks) {
+        return formatNumberedTasks("Here are the tasks in your list:", tasks);
     }
 
     /**
-     * Prints the tasks that matched a search, numbered from 1.
+     * Returns the tasks that matched a search, numbered from 1.
      * <p>
      * The numbers count the matches rather than naming positions in the full list, which
      * is what the worked example in the requirements shows.
      *
      * @param tasks the matching tasks, assumed not empty.
+     * @return the heading followed by the numbered matches.
      */
-    public void showMatchingTasks(TaskList tasks) {
-        showNumberedTasks("Here are the matching tasks in your list:", tasks);
+    public String formatMatchingTasks(TaskList tasks) {
+        return formatNumberedTasks("Here are the matching tasks in your list:", tasks);
     }
 
     /**
-     * Prints an opening line followed by the tasks, numbered from 1.
+     * Returns an opening line followed by the tasks, numbered from 1.
      *
      * @param heading the line shown above the tasks.
      * @param tasks   the tasks to show, assumed not empty.
+     * @return the heading followed by the numbered tasks.
      */
-    private void showNumberedTasks(String heading, TaskList tasks) {
+    private String formatNumberedTasks(String heading, TaskList tasks) {
         StringBuilder message = new StringBuilder(heading);
         int taskNumber = 1;
         for (Task task : tasks.asList()) {
@@ -130,6 +130,26 @@ public class Ui {
                     .append(taskNumber).append('.').append(task);
             taskNumber++;
         }
-        showReply(message.toString());
+        return message.toString();
+    }
+
+    /** Prints the banner and welcome message. Text interface only. */
+    public void printGreeting() {
+        System.out.println(DIVIDER);
+        System.out.println(BANNER);
+        System.out.println(formatGreeting());
+        System.out.println(DIVIDER);
+    }
+
+    /**
+     * Prints one reply, wrapped in a divider so it stands out from the lines the user
+     * typed. Text interface only; the graphical interface separates replies visually
+     * instead, so a divider there would only be clutter.
+     *
+     * @param message the text to show to the user.
+     */
+    public void printReply(String message) {
+        System.out.println(message);
+        System.out.println(DIVIDER);
     }
 }

@@ -24,11 +24,12 @@ public abstract class Command {
      * will eventually act on.
      *
      * @param tasks   the task list to read or change.
-     * @param ui      used to tell the user what happened.
+     * @param ui      used to word replies that list tasks.
      * @param storage used to save the list if this command changed it.
+     * @return what Harvey should say in reply, ready to be printed or shown in a window.
      * @throws HarveyException if the instruction cannot be carried out as asked.
      */
-    public abstract void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException;
+    public abstract String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException;
 
     /**
      * Returns whether Harvey should stop after this command.
