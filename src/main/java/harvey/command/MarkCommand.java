@@ -24,7 +24,6 @@ public class MarkCommand extends Command {
         Task marked = tasks.get(parseTaskNumber(argument, tasks, CommandType.MARK));
         marked.markAsDone();
         storage.save(tasks.asList());
-        return "Nice! I've marked this task as done:" + System.lineSeparator()
-                + "  " + marked;
+        return ui.formatLines("Nice! I've marked this task as done:", "  " + marked);
     }
 }

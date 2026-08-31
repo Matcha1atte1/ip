@@ -1,5 +1,7 @@
 package harvey.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import harvey.task.Task;
@@ -64,7 +66,23 @@ public class Ui {
      * @return the greeting.
      */
     public String formatGreeting() {
-        return "Hello! I'm Harvey." + System.lineSeparator() + "What can I do for you?";
+        return formatLines("Hello! I'm Harvey.", "What can I do for you?");
+    }
+
+    /**
+     * Joins lines into one reply, separated by the line ending this platform uses.
+     * <p>
+     * Varargs suit this because the number of lines differs at every call and is known
+     * when the code is written. A caller lists its lines as ordinary arguments instead of
+     * threading {@code System.lineSeparator()} between them by hand, which is easy to get
+     * wrong and hard to read. Taking an array or a List instead would force every caller
+     * to build a collection purely to pass it straight in.
+     *
+     * @param lines the lines, in the order they should appear.
+     * @return the lines joined by the platform's line separator.
+     */
+    public String formatLines(String... lines) {
+        return String.join(System.lineSeparator(), lines);
     }
 
     /**
@@ -122,15 +140,20 @@ public class Ui {
      * @return the heading followed by the numbered tasks.
      */
     private String formatNumberedTasks(String heading, TaskList tasks) {
-        StringBuilder message = new StringBuilder(heading);
+        List<String> lines = new ArrayList<>();
+        lines.add(heading);
+
         int taskNumber = 1;
         for (Task task : tasks.asList()) {
             // Task.toString() supplies the "[X] description" part.
-            message.append(System.lineSeparator())
-                    .append(taskNumber).append('.').append(task);
+            lines.add(taskNumber + "." + task);
             taskNumber++;
         }
-        return message.toString();
+
+        // A varargs parameter is an array underneath, so a method declared with one also
+        // accepts an array. That is what a run of lines whose length is not known until
+        // run time has to be passed as.
+        return formatLines(lines.toArray(new String[0]));
     }
 
     /** Prints the banner and welcome message. Text interface only. */
