@@ -23,8 +23,8 @@ public class DeleteCommand extends Command {
     public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task removed = tasks.delete(parseTaskNumber(argument, tasks, CommandType.DELETE));
         storage.save(tasks.asList());
-        return "Noted. I've removed this task:" + System.lineSeparator()
-                + "  " + removed + System.lineSeparator()
-                + "Now you have " + tasks.size() + " tasks in the list.";
+        return ui.formatLines("Noted. I've removed this task:",
+                "  " + removed,
+                "Now you have " + tasks.size() + " tasks in the list.");
     }
 }
