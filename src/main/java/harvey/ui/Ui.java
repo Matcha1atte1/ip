@@ -1,9 +1,9 @@
 package harvey.ui;
 
+import java.util.Scanner;
+
 import harvey.task.Task;
 import harvey.task.TaskList;
-
-import java.util.Scanner;
 /**
  * Handles everything Harvey shows the user and everything the user types back.
  * <p>

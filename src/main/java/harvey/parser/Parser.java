@@ -38,21 +38,21 @@ public class Parser {
         String argument = parseArgument(fullCommand);
 
         switch (type) {
-        case BYE:
-            return new ExitCommand();
-        case LIST:
-            return new ListCommand();
-        case FIND:
-            return new FindCommand(argument);
-        case MARK:
-            return new MarkCommand(argument);
-        case UNMARK:
-            return new UnmarkCommand(argument);
-        case DELETE:
-            return new DeleteCommand(argument);
-        default:
-            // The three task-creating instructions, which AddCommand tells apart itself.
-            return new AddCommand(type, argument);
+            case BYE:
+                return new ExitCommand();
+            case LIST:
+                return new ListCommand();
+            case FIND:
+                return new FindCommand(argument);
+            case MARK:
+                return new MarkCommand(argument);
+            case UNMARK:
+                return new UnmarkCommand(argument);
+            case DELETE:
+                return new DeleteCommand(argument);
+            default:
+                // The three task-creating instructions, which AddCommand tells apart itself.
+                return new AddCommand(type, argument);
         }
     }
 

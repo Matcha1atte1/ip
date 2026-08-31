@@ -53,8 +53,8 @@ public class DeadlineTest {
 
     @Test
     public void parseDate_unparseableText_messageNamesTheExpectedFormat() {
-        HarveyException e = assertThrows(HarveyException.class,
-                () -> Deadline.parseDate("tomorrow"));
+        HarveyException e = assertThrows(
+                HarveyException.class, () -> Deadline.parseDate("tomorrow"));
         // The message has to tell the user what to type instead, not just that it failed.
         assertEquals("I could not read \"tomorrow\" as a date. "
                 + "Please write it as yyyy-mm-dd, for example 2019-10-15.", e.getMessage());

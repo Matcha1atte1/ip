@@ -1,8 +1,8 @@
 package harvey.task;
 
-import harvey.HarveyException;
-
 import java.util.ArrayList;
+
+import harvey.HarveyException;
 /**
  * The list of tasks Harvey is keeping, together with the operations that change it.
  * <p>

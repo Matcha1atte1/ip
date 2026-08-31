@@ -25,8 +25,8 @@ public class CommandTypeTest {
     @Test
     public void fromKeyword_unknownWord_exceptionNamesTheWordAndListsCommands()
             throws HarveyException {
-        HarveyException e = assertThrows(HarveyException.class,
-                () -> CommandType.fromKeyword("blah"));
+        HarveyException e = assertThrows(
+                HarveyException.class, () -> CommandType.fromKeyword("blah"));
         assertTrue(e.getMessage().contains("\"blah\""),
                 "the message should quote what the user typed: " + e.getMessage());
         assertTrue(e.getMessage().contains("todo"),

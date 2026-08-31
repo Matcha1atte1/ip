@@ -1,17 +1,17 @@
 package harvey.storage;
 
-import harvey.HarveyException;
-import harvey.task.Deadline;
-import harvey.task.Event;
-import harvey.task.Task;
-import harvey.task.Todo;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import harvey.HarveyException;
+import harvey.task.Deadline;
+import harvey.task.Event;
+import harvey.task.Task;
+import harvey.task.Todo;
 /**
  * Writes the task list to a file on disk, so tasks survive between runs.
  * <p>
@@ -20,15 +20,15 @@ import java.util.List;
  * class and the {@code toFileFormat} methods change.
  */
 public class Storage {
-    /** Where the tasks are stored, relative to the folder the program is started from. */
-    private final Path filePath;
-
     /**
      * The same separator written as a regular expression, for splitting a line back up.
      * {@code split} treats its argument as a regex, in which {@code |} means "or", so the
      * bar has to be escaped as {@code \|} to stand for a literal bar character.
      */
     private static final String SEPARATOR_REGEX = " \\| ";
+
+    /** Where the tasks are stored, relative to the folder the program is started from. */
+    private final Path filePath;
 
     /** How many lines the most recent {@link #load()} could not understand. */
     private int skippedLines = 0;
@@ -169,24 +169,24 @@ public class Storage {
         // deadline line would fail with an array error instead of a clear message.
         Task task;
         switch (typeLetter) {
-        case "T":
-            requireFieldCount(fields, 3, line);
-            task = new Todo(description);
-            break;
-        case "D":
-            requireFieldCount(fields, 4, line);
-            // Reusing parseDate means a hand-edited date in the file is caught the same
-            // way as a mistyped one, and is skipped as a damaged line.
-            task = new Deadline(description, Deadline.parseDate(fields[3]));
-            break;
-        case "E":
-            requireFieldCount(fields, 5, line);
-            task = new Event(description, fields[3], fields[4]);
-            break;
-        default:
-            // Previously an unknown letter quietly became a Todo, which turned damaged
-            // data into a wrong task. Rejecting it is safer than guessing.
-            throw new HarveyException("Unknown task type \"" + typeLetter + "\": " + line);
+            case "T":
+                requireFieldCount(fields, 3, line);
+                task = new Todo(description);
+                break;
+            case "D":
+                requireFieldCount(fields, 4, line);
+                // Reusing parseDate means a hand-edited date in the file is caught the same
+                // way as a mistyped one, and is skipped as a damaged line.
+                task = new Deadline(description, Deadline.parseDate(fields[3]));
+                break;
+            case "E":
+                requireFieldCount(fields, 5, line);
+                task = new Event(description, fields[3], fields[4]);
+                break;
+            default:
+                // Previously an unknown letter quietly became a Todo, which turned damaged
+                // data into a wrong task. Rejecting it is safer than guessing.
+                throw new HarveyException("Unknown task type \"" + typeLetter + "\": " + line);
         }
 
         if (description.isEmpty()) {

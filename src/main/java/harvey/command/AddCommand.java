@@ -5,8 +5,8 @@ import harvey.storage.Storage;
 import harvey.task.Deadline;
 import harvey.task.Event;
 import harvey.task.Task;
-import harvey.task.Todo;
 import harvey.task.TaskList;
+import harvey.task.Todo;
 import harvey.ui.Ui;
 /**
  * Adds a new task to the list.
@@ -86,23 +86,23 @@ public class AddCommand extends Command {
         }
 
         switch (command) {
-        case TODO:
-            return new Todo(argument);
-        case DEADLINE:
-            // "return book /by Sunday" splits into "return book" and "Sunday".
-            String[] parts = splitAtOption(argument, OPTION_BY,
-                    "A deadline needs a due date after " + OPTION_BY + ". For example: "
-                            + command.getExample());
-            // parseDate rejects anything that is not a real date, so a Deadline can never
-            // be built holding text that only looks like one.
-            return new Deadline(parts[0], Deadline.parseDate(parts[1]));
-        default:
-            // An event needs two separators, so split at "/from" first and then at "/to".
-            String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
-                    + OPTION_TO + ". For example: " + command.getExample();
-            String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
-            String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
-            return new Event(fromParts[0], toParts[0], toParts[1]);
+            case TODO:
+                return new Todo(argument);
+            case DEADLINE:
+                // "return book /by Sunday" splits into "return book" and "Sunday".
+                String[] parts = splitAtOption(argument, OPTION_BY,
+                        "A deadline needs a due date after " + OPTION_BY + ". For example: "
+                                + command.getExample());
+                // parseDate rejects anything that is not a real date, so a Deadline can never
+                // be built holding text that only looks like one.
+                return new Deadline(parts[0], Deadline.parseDate(parts[1]));
+            default:
+                // An event needs two separators, so split at "/from" first and then at "/to".
+                String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
+                        + OPTION_TO + ". For example: " + command.getExample();
+                String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
+                String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
+                return new Event(fromParts[0], toParts[0], toParts[1]);
         }
     }
 
