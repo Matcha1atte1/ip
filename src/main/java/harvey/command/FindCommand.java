@@ -26,7 +26,7 @@ public class FindCommand extends Command {
     }
 
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+    public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         if (keyword.isEmpty()) {
             throw new HarveyException("Tell me what to search for. For example: "
                     + CommandType.FIND.getExample());
@@ -38,6 +38,6 @@ public class FindCommand extends Command {
             // just a heading with nothing under it.
             throw new HarveyException("No task matches \"" + keyword + "\".");
         }
-        ui.showMatchingTasks(matches);
+        return ui.formatMatchingTasks(matches);
     }
 }

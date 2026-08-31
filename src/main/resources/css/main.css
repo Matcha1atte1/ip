@@ -1,0 +1,83 @@
+/*
+ * The window's own furniture: backdrop, input field, send button, scroll bar.
+ * The palette is Harvey Specter's wardrobe - navy, charcoal, and a single gold accent
+ * used sparingly, the way a pocket square is.
+ */
+
+.root {
+    gold: #c9a227;              /* Looked-up colors, so the accent is named in one place. */
+    cream: #f4f1ea;
+    navy: #14213d;
+    -fx-background-color: #0b0d12;
+    -fx-background-image: url("../images/background.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+.text-field {
+    -fx-background-color: #10141b;
+    -fx-text-fill: cream;
+    -fx-prompt-text-fill: #9aa3b0;   /* Lightened to stay legible against the dark field. */
+    -fx-highlight-fill: gold;
+    -fx-highlight-text-fill: navy;
+    -fx-border-color: transparent transparent gold transparent;   /* A rule under the input only. */
+    -fx-border-width: 2px;
+    -fx-background-radius: 0;
+    -fx-padding: 0 12px 0 12px;
+    -fx-font: 15px "Georgia";
+}
+
+.button {
+    -fx-background-color: navy;
+    -fx-text-fill: gold;
+    -fx-border-color: gold;
+    -fx-border-width: 2px;
+    -fx-font: bold 13px "Georgia";
+    -fx-graphic: url("../images/send.png");
+    -fx-content-display: LEFT;
+    -fx-graphic-text-gap: 6px;
+    -fx-background-radius: 0;
+    -fx-padding: 0 8px 0 8px;      /* Vertical padding left at 0; the fixed height sets it. */
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: gold;
+    -fx-text-fill: navy;
+}
+
+.button:pressed {
+    -fx-background-color: #9c7d1c;
+    -fx-text-fill: navy;
+}
+
+.scroll-pane {
+    /* A scrim over the photo. Dark enough that light text on the bubbles always clears
+       the contrast threshold, sheer enough that the picture is still visible behind. */
+    -fx-background-color: rgba(8, 10, 15, 0.58);
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-font-size: 10px;                            /* Controls the width of the scroll bar. */
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #4a515c;
+    -fx-background-radius: 1em;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: gold;
+}
+
+/* Hides the increment and decrement buttons. */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}

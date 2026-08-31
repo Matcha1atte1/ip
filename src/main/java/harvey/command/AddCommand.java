@@ -46,13 +46,16 @@ public class AddCommand extends Command {
     }
 
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
+    public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task task = createTask(type, argument);
         tasks.add(task);
-        ui.showReply("Got it. I've added this task:" + System.lineSeparator()
-                + "  " + task + System.lineSeparator()
-                + "Now you have " + tasks.size() + " tasks in the list.");
+
+        // Saved before the reply is returned, so that a failure to write the file is
+        // reported as an error instead of being hidden behind a cheerful confirmation.
         storage.save(tasks.asList());
+        return "Got it. I've added this task:" + System.lineSeparator()
+                + "  " + task + System.lineSeparator()
+                + "Now you have " + tasks.size() + " tasks in the list.";
     }
 
     /**
