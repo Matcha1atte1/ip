@@ -55,7 +55,7 @@ public class AddCommand extends Command {
         storage.save(tasks.asList());
         return ui.formatLines("Got it. I've added this task:",
                 "  " + task,
-                "Now you have " + tasks.size() + " tasks in the list.");
+                ui.formatTaskCount(tasks.size()));
     }
 
     /**
@@ -99,13 +99,17 @@ public class AddCommand extends Command {
                 // parseDate rejects anything that is not a real date, so a Deadline can never
                 // be built holding text that only looks like one.
                 return new Deadline(parts[0], Deadline.parseDate(parts[1]));
-            default:
+            case EVENT:
                 // An event needs two separators, so split at "/from" first and then at "/to".
                 String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
                         + OPTION_TO + ". For example: " + command.getExample();
                 String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
                 String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
                 return new Event(fromParts[0], toParts[0], toParts[1]);
+            default:
+                // Parser sends only the three commands named above here, so reaching this
+                // means a fourth was routed here without being given a task to build.
+                throw new HarveyException(command.getKeyword() + " does not create a task.");
         }
     }
 

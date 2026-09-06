@@ -50,9 +50,16 @@ public class Parser {
                 return new UnmarkCommand(argument);
             case DELETE:
                 return new DeleteCommand(argument);
-            default:
+            case TODO:
+            case DEADLINE:
+            case EVENT:
                 // The three task-creating instructions, which AddCommand tells apart itself.
                 return new AddCommand(type, argument);
+            default:
+                // Every constant of CommandType is named above, so this is reached only if
+                // one is added without deciding here what it should build.
+                throw new HarveyException("I know the word \"" + type.getKeyword()
+                        + "\" but not yet what to do with it.");
         }
     }
 

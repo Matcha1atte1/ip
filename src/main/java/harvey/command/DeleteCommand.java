@@ -25,6 +25,6 @@ public class DeleteCommand extends Command {
         storage.save(tasks.asList());
         return ui.formatLines("Noted. I've removed this task:",
                 "  " + removed,
-                "Now you have " + tasks.size() + " tasks in the list.");
+                ui.formatTaskCount(tasks.size()));
     }
 }

@@ -22,6 +22,22 @@ public class UiTest {
     private final Ui ui = new Ui();
 
     @Test
+    public void formatTaskCount_oneTask_usesSingular() {
+        assertEquals("Now you have 1 task in the list.", ui.formatTaskCount(1));
+    }
+
+    @Test
+    public void formatTaskCount_severalTasks_usesPlural() {
+        assertEquals("Now you have 3 tasks in the list.", ui.formatTaskCount(3));
+    }
+
+    @Test
+    public void formatTaskCount_noTasksLeft_usesPlural() {
+        // "0 tasks" reads correctly, so zero is not a special case the way one is.
+        assertEquals("Now you have 0 tasks in the list.", ui.formatTaskCount(0));
+    }
+
+    @Test
     public void formatLines_severalLines_joinedBySeparator() {
         assertEquals("one" + NEW_LINE + "two" + NEW_LINE + "three",
                 ui.formatLines("one", "two", "three"));
