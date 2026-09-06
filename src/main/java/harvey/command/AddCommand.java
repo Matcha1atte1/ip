@@ -73,6 +73,7 @@ public class AddCommand extends Command {
      * @throws HarveyException if the description or any required date is missing.
      */
     private static Task createTask(CommandType command, String argument) throws HarveyException {
+        assert argument != null : "Parser.parseArgument() returns an empty string when there is no argument";
         if (argument.isEmpty()) {
             // "event" starts with a vowel, so it needs "An" rather than "A".
             String article = (command == CommandType.EVENT) ? "An " : "A ";
@@ -100,6 +101,8 @@ public class AddCommand extends Command {
                 // be built holding text that only looks like one.
                 return new Deadline(parts[0], Deadline.parseDate(parts[1]));
             default:
+                assert command == CommandType.EVENT
+                        : "Parser only routes TODO, DEADLINE and EVENT here, so this branch means EVENT";
                 // An event needs two separators, so split at "/from" first and then at "/to".
                 String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
                         + OPTION_TO + ". For example: " + command.getExample();
