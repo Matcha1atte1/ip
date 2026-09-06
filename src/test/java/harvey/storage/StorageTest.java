@@ -146,6 +146,28 @@ public class StorageTest {
     }
 
     @Test
+    public void load_emptyDescription_skipped() throws Exception {
+        // The description is checked before any task is built, so no half-formed Todo
+        // is created and thrown away.
+        writeFile("T | 0 | ");
+        Storage storage = storage();
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getSkippedLines());
+    }
+
+    @Test
+    public void load_deadlineWithTooManyFields_skipped() throws Exception {
+        // Each task type has its own expected field count, so a deadline carrying an
+        // extra field is damaged even though it has more than the shared three.
+        writeFile("D | 0 | return book | 2019-10-15 | extra");
+        Storage storage = storage();
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getSkippedLines());
+    }
+
+    @Test
     public void load_doneFlagNeitherZeroNorOne_skipped() throws Exception {
         writeFile("T | yes | read book");
         Storage storage = storage();

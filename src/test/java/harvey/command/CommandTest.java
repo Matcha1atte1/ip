@@ -54,7 +54,7 @@ public class CommandTest {
 
         assertEquals("Got it. I've added this task:" + NEW_LINE
                 + "  [T][ ] read book" + NEW_LINE
-                + "Now you have 1 tasks in the list.", reply);
+                + "Now you have 1 task in the list.", reply);
         assertEquals(1, tasks.size());
     }
 
