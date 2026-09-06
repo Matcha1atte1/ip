@@ -70,13 +70,14 @@ public class StorageTest {
         todo.markAsDone();
         tasks.add(todo);
         tasks.add(new Deadline("return book", java.time.LocalDate.of(2019, 10, 15)));
-        tasks.add(new Event("project meeting", "Mon 2pm", "4pm"));
+        tasks.add(new Event("project meeting", java.time.LocalDateTime.of(2019, 10, 15, 14, 0),
+                java.time.LocalDateTime.of(2019, 10, 15, 16, 0)));
         storage().save(tasks);
 
         assertEquals(List.of(
                 "T | 1 | read book",
                 "D | 0 | return book | 2019-10-15",
-                "E | 0 | project meeting | Mon 2pm | 4pm"),
+                "E | 0 | project meeting | 2019-10-15 1400 | 2019-10-15 1600"),
                 Files.readAllLines(tempDir.resolve("harvey.txt")));
     }
 
@@ -89,7 +90,8 @@ public class StorageTest {
         todo.markAsDone();
         original.add(todo);
         original.add(new Deadline("return book", java.time.LocalDate.of(2019, 10, 15)));
-        original.add(new Event("project meeting", "Mon 2pm", "4pm"));
+        original.add(new Event("project meeting", java.time.LocalDateTime.of(2019, 10, 15, 14, 0),
+                java.time.LocalDateTime.of(2019, 10, 15, 16, 0)));
 
         Storage storage = storage();
         storage.save(original);
@@ -192,14 +194,15 @@ public class StorageTest {
         writeFile("T | 0 | first",
                 "nonsense",
                 "X | 0 | bad type",
-                "E | 1 | meeting | 2pm | 4pm");
+                "E | 1 | meeting | 2019-10-15 1400 | 2019-10-15 1600");
         Storage storage = storage();
         ArrayList<Task> loaded = storage.load();
 
         assertEquals(2, loaded.size());
         assertEquals(2, storage.getSkippedLines());
         assertEquals("[T][ ] first", loaded.get(0).toString());
-        assertEquals("[E][X] meeting (from: 2pm to: 4pm)", loaded.get(1).toString());
+        assertEquals("[E][X] meeting (from: Oct 15 2019 2:00PM to: Oct 15 2019 4:00PM)",
+                loaded.get(1).toString());
     }
 
     @Test
@@ -214,5 +217,27 @@ public class StorageTest {
         writeFile("T | 0 | read book");
         storage.load();
         assertEquals(0, storage.getSkippedLines());
+    }
+
+    @Test
+    public void load_eventWithUnreadableTimes_lineIsSkipped() throws Exception {
+        // Events used to be saved with their times as free text. Such a line can no longer
+        // be understood, so it is treated as damaged rather than loaded as a broken event.
+        writeFile("E | 0 | meeting | Mon 2pm | 4pm");
+        Storage storage = storage();
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getSkippedLines());
+    }
+
+    @Test
+    public void load_eventEndingBeforeItStarts_lineIsSkipped() throws Exception {
+        // The file can be edited by hand, so an impossible event has to be caught on the
+        // way in rather than reaching the clash check.
+        writeFile("E | 0 | meeting | 2019-10-15 1600 | 2019-10-15 1400");
+        Storage storage = storage();
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getSkippedLines());
     }
 }

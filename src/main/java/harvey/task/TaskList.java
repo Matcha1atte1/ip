@@ -1,6 +1,7 @@
 package harvey.task;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import harvey.HarveyException;
@@ -117,6 +118,30 @@ public class TaskList {
         assert index >= 0 && index < tasks.size()
                 : "The range check above should have rejected " + taskNumber;
         return index;
+    }
+
+    /**
+     * Returns an event already in the list that shares time with the given one.
+     * <p>
+     * Only events can clash. A todo has no time at all and a deadline is a single instant
+     * to finish something by, so neither occupies a stretch of the schedule that another
+     * task could collide with; both are skipped.
+     * <p>
+     * The search stops at the first match rather than collecting every one, because the
+     * caller only needs to name one conflict for the user to act on. An event is never
+     * reported as clashing with itself, so a task that is already stored can be checked
+     * again safely.
+     *
+     * @param candidate the event being considered.
+     * @return the first clashing event, or empty if the candidate fits.
+     */
+    public Optional<Event> findClash(Event candidate) {
+        assert candidate != null : "AddCommand only checks an event it has just built";
+        return tasks.stream()
+                .filter(task -> task instanceof Event)
+                .map(task -> (Event) task)
+                .filter(event -> event != candidate && event.overlaps(candidate))
+                .findFirst();
     }
 
     /**

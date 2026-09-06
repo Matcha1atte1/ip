@@ -1,5 +1,7 @@
 package harvey.command;
 
+import java.util.Optional;
+
 import harvey.HarveyException;
 import harvey.storage.Storage;
 import harvey.task.Deadline;
@@ -48,6 +50,9 @@ public class AddCommand extends Command {
     @Override
     public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task task = createTask(type, argument);
+        if (task instanceof Event event) {
+            requireNoClash(event, tasks, ui);
+        }
         tasks.add(task);
 
         // Saved before the reply is returned, so that a failure to write the file is
@@ -56,6 +61,35 @@ public class AddCommand extends Command {
         return ui.formatLines("Got it. I've added this task:",
                 "  " + task,
                 ui.formatTaskCount(tasks.size()));
+    }
+
+    /**
+     * Checks that an event about to be added does not collide with one already stored.
+     * <p>
+     * Called before the task is added and before anything is saved, so a refused event
+     * leaves both the list and the file exactly as they were. A tutor cannot teach two
+     * students at once, so a collision is treated as a mistake to correct rather than a
+     * warning to read and ignore.
+     *
+     * @param event the event being added.
+     * @param tasks the tasks already stored.
+     * @param ui    the source of the reply format, used to lay the message out.
+     * @throws HarveyException if the event overlaps one already in the list.
+     */
+    private static void requireNoClash(Event event, TaskList tasks, Ui ui) throws HarveyException {
+        Optional<Event> clash = tasks.findClash(event);
+        if (clash.isEmpty()) {
+            return;
+        }
+
+        // The task number is what the user needs to delete or inspect the other event,
+        // and is the number list shows, so it counts from 1.
+        int clashingNumber = tasks.asList().indexOf(clash.get()) + 1;
+        throw new HarveyException(ui.formatLines(
+                "That clashes with an event you already have:",
+                "  " + clash.get(),
+                "Nothing was added. Pick a different time, or delete task "
+                        + clashingNumber + " first."));
     }
 
     /**
@@ -106,7 +140,8 @@ public class AddCommand extends Command {
                         + OPTION_TO + ". For example: " + command.getExample();
                 String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
                 String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
-                return new Event(fromParts[0], toParts[0], toParts[1]);
+                return new Event(fromParts[0], Event.parseDateTime(toParts[0]),
+                        Event.parseDateTime(toParts[1]));
             default:
                 // Parser sends only the three commands named above here, so reaching this
                 // means a fourth was routed here without being given a task to build.

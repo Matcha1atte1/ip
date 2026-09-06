@@ -251,8 +251,10 @@ public class Storage {
                 return new Deadline(description, Deadline.parseDate(fields[SHARED_FIELD_COUNT]));
             case "E":
                 requireFieldCount(fields, EVENT_FIELD_COUNT, line);
-                return new Event(description, fields[SHARED_FIELD_COUNT],
-                        fields[SHARED_FIELD_COUNT + 1]);
+                // Reusing parseDateTime does for an event what parseDate does for a
+                // deadline: a hand-edited time is caught here and the line is skipped.
+                return new Event(description, Event.parseDateTime(fields[SHARED_FIELD_COUNT]),
+                        Event.parseDateTime(fields[SHARED_FIELD_COUNT + 1]));
             default:
                 // Previously an unknown letter quietly became a Todo, which turned damaged
                 // data into a wrong task. Rejecting it is safer than guessing.
