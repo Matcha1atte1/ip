@@ -27,6 +27,33 @@ public class Storage {
      */
     private static final String SEPARATOR_REGEX = " \\| ";
 
+    /** Position of the type letter within a saved line. */
+    private static final int FIELD_TYPE = 0;
+
+    /** Position of the done flag within a saved line. */
+    private static final int FIELD_DONE = 1;
+
+    /** Position of the description within a saved line. */
+    private static final int FIELD_DESCRIPTION = 2;
+
+    /** Fields every saved line has, whatever task it holds: type, done flag and description. */
+    private static final int SHARED_FIELD_COUNT = 3;
+
+    /** Fields a saved todo has: the shared three and nothing more. */
+    private static final int TODO_FIELD_COUNT = SHARED_FIELD_COUNT;
+
+    /** Fields a saved deadline has: the shared three plus the due date. */
+    private static final int DEADLINE_FIELD_COUNT = SHARED_FIELD_COUNT + 1;
+
+    /** Fields a saved event has: the shared three plus a start and an end. */
+    private static final int EVENT_FIELD_COUNT = SHARED_FIELD_COUNT + 2;
+
+    /** Done flag written for a task the user has completed. */
+    private static final String DONE_FLAG_TRUE = "1";
+
+    /** Done flag written for a task the user has not completed. */
+    private static final String DONE_FLAG_FALSE = "0";
+
     /** Where the tasks are stored, relative to the folder the program is started from. */
     private final Path filePath;
 
@@ -89,11 +116,6 @@ public class Storage {
 
     /**
      * Reads back the tasks previously written by {@link #save(ArrayList)}.
-     * <p>
-     * Note that loading cannot be polymorphic the way saving is. When saving, each task
-     * already exists and can be asked for its own line. When loading there is no task yet
-     * to ask, so something has to read the type letter and decide which subclass to build;
-     * that decision lives here.
      *
      * @return the stored tasks, in the order they were written.
      * @throws HarveyException if the file cannot be read.
@@ -150,9 +172,9 @@ public class Storage {
      * Rebuilds one task from one line of the save file, reversing {@code toFileFormat}.
      * <p>
      * The file is a plain text file that anyone can open and edit, so a line cannot be
-     * assumed to be well formed. Every part is checked before it is used, and anything
-     * unexpected is reported as a {@link HarveyException} for the caller to deal with,
-     * rather than being allowed to reach the array or the constructors.
+     * assumed to be well formed. Every part is checked before any task is built, and
+     * anything unexpected is reported as a {@link HarveyException} for the caller to deal
+     * with, rather than being allowed to reach the constructors.
      *
      * @param line a line such as {@code D | 0 | return book | Sunday}.
      * @return the task that line describes.
@@ -161,57 +183,82 @@ public class Storage {
     private static Task toTask(String line) throws HarveyException {
         // ["D", "0", "return book", "Sunday"] for the example above.
         String[] fields = line.split(SEPARATOR_REGEX);
-        if (fields.length < 3) {
+        requireSharedFields(fields, line);
+
+        String doneFlag = fields[FIELD_DONE];
+        Task task = buildTask(fields, line);
+        assert task != null : "Every branch of buildTask either returns a task or throws";
+
+        if (doneFlag.equals(DONE_FLAG_TRUE)) {
+            // Every task is built as not-done, so the stored flag is applied afterwards
+            // rather than being passed through four separate constructors.
+            task.markAsDone();
+        }
+        return task;
+    }
+
+    /**
+     * Checks the parts every saved line must have, whatever kind of task it holds.
+     *
+     * @param fields the fields the line was split into.
+     * @param line   the original line, for use in the error message.
+     * @throws HarveyException if a shared field is missing, empty or not one of the values written.
+     */
+    private static void requireSharedFields(String[] fields, String line) throws HarveyException {
+        if (fields.length < SHARED_FIELD_COUNT) {
             throw new HarveyException("Line has too few fields: " + line);
         }
+        if (fields[FIELD_DESCRIPTION].isEmpty()) {
+            throw new HarveyException("Task has no description: " + line);
+        }
 
-        String typeLetter = fields[0];
-        String doneFlag = fields[1];
-        String description = fields[2];
+        // Only the two flags above are ever written, so anything else means the line was
+        // edited by hand and its done state cannot be trusted.
+        String doneFlag = fields[FIELD_DONE];
+        if (!doneFlag.equals(DONE_FLAG_TRUE) && !doneFlag.equals(DONE_FLAG_FALSE)) {
+            throw new HarveyException("Done flag is neither " + DONE_FLAG_TRUE + " nor "
+                    + DONE_FLAG_FALSE + ": " + line);
+        }
+    }
+
+    /**
+     * Builds the kind of task the type letter names, from fields already known to be sound.
+     * <p>
+     * Note that loading cannot be polymorphic the way saving is. When saving, each task
+     * already exists and can be asked for its own line. When loading there is no task yet
+     * to ask, so something has to read the type letter and decide which subclass to build;
+     * that decision lives here.
+     *
+     * @param fields the fields the line was split into.
+     * @param line   the original line, for use in the error message.
+     * @return the task those fields describe, not yet marked as done.
+     * @throws HarveyException if the type letter is unknown or the line has the wrong number of fields.
+     */
+    private static Task buildTask(String[] fields, String line) throws HarveyException {
+        String description = fields[FIELD_DESCRIPTION];
 
         // How many fields the line should have depends on its type, so the expected count
         // is checked before any of the extra fields are read. Without this, a truncated
         // deadline line would fail with an array error instead of a clear message.
-        Task task;
-        switch (typeLetter) {
+        switch (fields[FIELD_TYPE]) {
             case "T":
-                requireFieldCount(fields, 3, line);
-                task = new Todo(description);
-                break;
+                requireFieldCount(fields, TODO_FIELD_COUNT, line);
+                return new Todo(description);
             case "D":
-                requireFieldCount(fields, 4, line);
+                requireFieldCount(fields, DEADLINE_FIELD_COUNT, line);
                 // Reusing parseDate means a hand-edited date in the file is caught the same
                 // way as a mistyped one, and is skipped as a damaged line.
-                task = new Deadline(description, Deadline.parseDate(fields[3]));
-                break;
+                return new Deadline(description, Deadline.parseDate(fields[SHARED_FIELD_COUNT]));
             case "E":
-                requireFieldCount(fields, 5, line);
-                task = new Event(description, fields[3], fields[4]);
-                break;
+                requireFieldCount(fields, EVENT_FIELD_COUNT, line);
+                return new Event(description, fields[SHARED_FIELD_COUNT],
+                        fields[SHARED_FIELD_COUNT + 1]);
             default:
                 // Previously an unknown letter quietly became a Todo, which turned damaged
                 // data into a wrong task. Rejecting it is safer than guessing.
-                throw new HarveyException("Unknown task type \"" + typeLetter + "\": " + line);
+                throw new HarveyException("Unknown task type \"" + fields[FIELD_TYPE]
+                        + "\": " + line);
         }
-
-        assert task != null : "Every branch of the switch above either assigns a task or throws";
-
-        if (description.isEmpty()) {
-            throw new HarveyException("Task has no description: " + line);
-        }
-
-        // Only "1" and "0" are ever written, so anything else means the line was edited
-        // by hand and its done state cannot be trusted.
-        if (!doneFlag.equals("1") && !doneFlag.equals("0")) {
-            throw new HarveyException("Done flag is neither 1 nor 0: " + line);
-        }
-
-        // Every task is built as not-done, so the stored flag is applied afterwards
-        // rather than being passed through four separate constructors.
-        if (doneFlag.equals("1")) {
-            task.markAsDone();
-        }
-        return task;
     }
 
     /**

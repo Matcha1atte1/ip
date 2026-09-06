@@ -87,6 +87,20 @@ public class Ui {
     }
 
     /**
+     * Returns the sentence reporting how much is left in the list after a change.
+     * <p>
+     * Adding and deleting both end their reply this way, so the wording lives here rather
+     * than being spelled out in each command. Keeping it in one place is also what makes
+     * the singular case worth handling: "1 task" instead of "1 tasks".
+     *
+     * @param count how many tasks remain.
+     * @return the closing sentence of an add or delete reply.
+     */
+    public String formatTaskCount(int count) {
+        return "Now you have " + count + (count == 1 ? " task" : " tasks") + " in the list.";
+    }
+
+    /**
      * Returns the parting message shown when the user says goodbye or input runs out.
      *
      * @return the farewell.
