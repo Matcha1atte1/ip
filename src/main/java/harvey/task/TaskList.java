@@ -27,6 +27,7 @@ public class TaskList {
      * @param tasks the tasks to start with.
      */
     public TaskList(ArrayList<Task> tasks) {
+        assert tasks != null : "Storage.load() returns an empty list when there is no save file, never null";
         this.tasks = tasks;
     }
 
@@ -36,6 +37,7 @@ public class TaskList {
      * @param task the task to add.
      */
     public void add(Task task) {
+        assert task != null : "AddCommand.createTask() either builds a task or throws, so it is never null";
         tasks.add(task);
     }
 
@@ -60,7 +62,10 @@ public class TaskList {
      * @throws HarveyException if there is no task with that number.
      */
     public Task delete(int taskNumber) throws HarveyException {
-        return tasks.remove(toIndex(taskNumber));
+        int sizeBefore = tasks.size();
+        Task removed = tasks.remove(toIndex(taskNumber));
+        assert tasks.size() == sizeBefore - 1 : "Deleting one task should shorten the list by exactly one";
+        return removed;
     }
 
     /**
@@ -107,7 +112,10 @@ public class TaskList {
             throw new HarveyException("There is no task " + taskNumber + ". You have "
                     + tasks.size() + " task(s), so pick a number from 1 to " + tasks.size() + ".");
         }
-        return taskNumber - 1;
+        int index = taskNumber - 1;
+        assert index >= 0 && index < tasks.size()
+                : "The range check above should have rejected " + taskNumber;
+        return index;
     }
 
     /**

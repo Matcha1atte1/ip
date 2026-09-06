@@ -88,6 +88,7 @@ public class Storage {
      * @throws HarveyException if the file cannot be written.
      */
     public void save(ArrayList<Task> tasks) throws HarveyException {
+        assert tasks != null : "TaskList.asList() hands out its own list, which is never null";
         List<String> lines = new ArrayList<>();
         for (Task task : tasks) {
             // Each subclass supplies its own line format, so this loop never needs to ask
@@ -182,6 +183,8 @@ public class Storage {
 
         String doneFlag = fields[FIELD_DONE];
         Task task = buildTask(fields, line);
+        assert task != null : "Every branch of buildTask either returns a task or throws";
+
         if (doneFlag.equals(DONE_FLAG_TRUE)) {
             // Every task is built as not-done, so the stored flag is applied afterwards
             // rather than being passed through four separate constructors.

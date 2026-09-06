@@ -73,6 +73,7 @@ public class AddCommand extends Command {
      * @throws HarveyException if the description or any required date is missing.
      */
     private static Task createTask(CommandType command, String argument) throws HarveyException {
+        assert argument != null : "Parser.parseArgument() returns an empty string when there is no argument";
         if (argument.isEmpty()) {
             // "event" starts with a vowel, so it needs "An" rather than "A".
             String article = (command == CommandType.EVENT) ? "An " : "A ";

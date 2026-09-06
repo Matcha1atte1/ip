@@ -76,4 +76,8 @@ shadowJar {
 
 run {
     standardInput = System.in
+    // The JVM ignores assertions unless it is started with -ea, so the assertions in the
+    // code would never be checked when the app is run. Gradle's test task enables them
+    // already; this does the same for run.
+    enableAssertions = true
 }
