@@ -89,12 +89,13 @@ public class Storage {
      */
     public void save(ArrayList<Task> tasks) throws HarveyException {
         assert tasks != null : "TaskList.asList() hands out its own list, which is never null";
-        List<String> lines = new ArrayList<>();
-        for (Task task : tasks) {
-            // Each subclass supplies its own line format, so this loop never needs to ask
-            // whether it is holding a Todo, a Deadline or an Event.
-            lines.add(task.toFileFormat());
-        }
+
+        // Each subclass supplies its own line format, so this never needs to ask whether
+        // it is holding a Todo, a Deadline or an Event. Task::toFileFormat is a method
+        // reference: shorthand for the lambda task -> task.toFileFormat().
+        List<String> lines = tasks.stream()
+                .map(Task::toFileFormat)
+                .toList();
 
         try {
             // The data folder does not exist in a fresh copy of the project, and writing a
@@ -130,6 +131,9 @@ public class Storage {
         }
 
         try {
+            // Deliberately a loop rather than a stream. toTask throws a checked exception,
+            // which a lambda cannot pass on, and each damaged line has to increment a
+            // counter outside the loop. Both fight the way streams are meant to be used.
             for (String line : Files.readAllLines(filePath)) {
                 // Blank lines carry no task and are not a sign of damage, e.g. a trailing
                 // newline at the end of the file, so they are passed over quietly.

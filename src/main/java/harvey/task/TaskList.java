@@ -1,6 +1,7 @@
 package harvey.task;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import harvey.HarveyException;
 /**
@@ -129,12 +130,10 @@ public class TaskList {
      * @return a list of the matching tasks, in their original order.
      */
     public TaskList find(String keyword) {
-        TaskList matches = new TaskList();
-        for (Task task : tasks) {
-            if (task.hasKeyword(keyword)) {
-                matches.add(task);
-            }
-        }
-        return matches;
+        // toCollection is used rather than toList because the TaskList constructor takes
+        // an ArrayList, and because the result is a list the caller may keep adding to.
+        return new TaskList(tasks.stream()
+                .filter(task -> task.hasKeyword(keyword))
+                .collect(Collectors.toCollection(ArrayList::new)));
     }
 }
