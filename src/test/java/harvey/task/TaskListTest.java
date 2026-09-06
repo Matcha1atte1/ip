@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import harvey.HarveyException;
@@ -182,5 +186,79 @@ public class TaskListTest {
         tasks.add(stored);
 
         assertSame(stored, tasks.find("book").get(1));
+    }
+
+    /** Builds an event on 10 Sep 2026 running between the two given hours. */
+    private Event eventFrom(String description, int startHour, int endHour) throws HarveyException {
+        return new Event(description,
+                LocalDateTime.of(2026, 9, 10, startHour, 0),
+                LocalDateTime.of(2026, 9, 10, endHour, 0));
+    }
+
+    @Test
+    public void findClash_emptyList_returnsEmpty() throws HarveyException {
+        assertEquals(Optional.empty(), new TaskList().findClash(eventFrom("tuition Ben", 16, 18)));
+    }
+
+    @Test
+    public void findClash_overlappingEvent_returnsThatEvent() throws HarveyException {
+        TaskList tasks = new TaskList();
+        Event sarah = eventFrom("tuition Sarah", 16, 18);
+        tasks.add(sarah);
+
+        assertEquals(Optional.of(sarah), tasks.findClash(eventFrom("tuition Ben", 17, 19)));
+    }
+
+    @Test
+    public void findClash_backToBackEvent_returnsEmpty() throws HarveyException {
+        TaskList tasks = new TaskList();
+        tasks.add(eventFrom("tuition Sarah", 16, 18));
+
+        assertEquals(Optional.empty(), tasks.findClash(eventFrom("tuition Ben", 18, 20)));
+    }
+
+    @Test
+    public void findClash_onlyTodosAndDeadlines_returnsEmpty() throws HarveyException {
+        // Neither a todo nor a deadline occupies a stretch of time, so neither can clash
+        // however close its date is to the event being added.
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("mark scripts"));
+        tasks.add(new Deadline("submit report", LocalDate.of(2026, 9, 10)));
+
+        assertEquals(Optional.empty(), tasks.findClash(eventFrom("tuition Ben", 16, 18)));
+    }
+
+    @Test
+    public void findClash_severalEventsOneClashing_returnsTheClashingOne() throws HarveyException {
+        TaskList tasks = new TaskList();
+        tasks.add(eventFrom("tuition Amy", 9, 11));
+        Event clashing = eventFrom("tuition Sarah", 16, 18);
+        tasks.add(clashing);
+        tasks.add(eventFrom("tuition Cody", 20, 22));
+
+        assertEquals(Optional.of(clashing), tasks.findClash(eventFrom("tuition Ben", 17, 19)));
+    }
+
+    @Test
+    public void findClash_twoClashingEvents_returnsTheEarlierOneInTheList() throws HarveyException {
+        // Reporting the first match keeps the error message short; the user fixes one
+        // conflict at a time and the next add reports the next one.
+        TaskList tasks = new TaskList();
+        Event first = eventFrom("tuition Sarah", 16, 18);
+        tasks.add(first);
+        tasks.add(eventFrom("tuition Cody", 17, 19));
+
+        assertEquals(Optional.of(first), tasks.findClash(eventFrom("tuition Ben", 16, 20)));
+    }
+
+    @Test
+    public void findClash_theEventItself_returnsEmpty() throws HarveyException {
+        // An event already in the list must not be reported as clashing with itself,
+        // which matters if a task is ever re-checked after being added.
+        TaskList tasks = new TaskList();
+        Event sarah = eventFrom("tuition Sarah", 16, 18);
+        tasks.add(sarah);
+
+        assertEquals(Optional.empty(), tasks.findClash(sarah));
     }
 }

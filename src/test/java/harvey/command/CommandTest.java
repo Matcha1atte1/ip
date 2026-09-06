@@ -151,4 +151,86 @@ public class CommandTest {
         assertEquals("Bye. Hope to see you again soon!", reply);
         assertTrue(command.isExit());
     }
+
+    @Test
+    public void execute_addEventClashingWithExisting_exceptionThrown() throws HarveyException {
+        TaskList tasks = new TaskList();
+        new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from 2026-09-10 1600 /to 2026-09-10 1800")
+                .execute(tasks, ui, storage());
+
+        AddCommand clashing = new AddCommand(CommandType.EVENT,
+                "tuition Ben /from 2026-09-10 1700 /to 2026-09-10 1900");
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                clashing.execute(tasks, ui, storage()));
+
+        // The message has to name the event in the way, or the user cannot act on it.
+        assertTrue(e.getMessage().contains("tuition Sarah"));
+        assertEquals(1, tasks.size());
+    }
+
+    @Test
+    public void execute_addEventClashingWithExisting_listAndFileAreUnchanged() throws Exception {
+        TaskList tasks = new TaskList();
+        Storage storage = storage();
+        new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from 2026-09-10 1600 /to 2026-09-10 1800")
+                .execute(tasks, ui, storage);
+
+        AddCommand clashing = new AddCommand(CommandType.EVENT,
+                "tuition Ben /from 2026-09-10 1700 /to 2026-09-10 1900");
+        assertThrows(HarveyException.class, () -> clashing.execute(tasks, ui, storage));
+
+        // A rejected event must leave no trace, so the saved file still holds one line.
+        assertEquals(1, storage.load().size());
+    }
+
+    @Test
+    public void execute_addEventBackToBackWithExisting_addsIt() throws HarveyException {
+        // Consecutive lessons are the normal case for a tutor and must not be refused.
+        TaskList tasks = new TaskList();
+        new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from 2026-09-10 1600 /to 2026-09-10 1800")
+                .execute(tasks, ui, storage());
+        new AddCommand(CommandType.EVENT,
+                "tuition Ben /from 2026-09-10 1800 /to 2026-09-10 2000")
+                .execute(tasks, ui, storage());
+
+        assertEquals(2, tasks.size());
+    }
+
+    @Test
+    public void execute_addEventClashingWithTodo_addsIt() throws HarveyException {
+        // A todo occupies no time, so it can never stand in an event's way.
+        TaskList tasks = listWithOneTodo();
+        new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from 2026-09-10 1600 /to 2026-09-10 1800")
+                .execute(tasks, ui, storage());
+
+        assertEquals(2, tasks.size());
+    }
+
+    @Test
+    public void execute_addEventEndingBeforeItStarts_exceptionThrown() {
+        TaskList tasks = new TaskList();
+        AddCommand command = new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from 2026-09-10 1800 /to 2026-09-10 1600");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("end after it starts"));
+        assertTrue(tasks.isEmpty());
+    }
+
+    @Test
+    public void execute_addEventWithUnreadableTime_exceptionThrown() {
+        TaskList tasks = new TaskList();
+        AddCommand command = new AddCommand(CommandType.EVENT,
+                "tuition Sarah /from Mon 2pm /to Mon 4pm");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("yyyy-mm-dd HHmm"));
+        assertTrue(tasks.isEmpty());
+    }
 }

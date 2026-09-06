@@ -22,7 +22,7 @@ public enum CommandType {
     DELETE("delete", "delete 3"),
     TODO("todo", "todo borrow book"),
     DEADLINE("deadline", "deadline return book /by 2019-10-15"),
-    EVENT("event", "event project meeting /from Mon 2pm /to 4pm");
+    EVENT("event", "event project meeting /from 2019-10-15 1400 /to 2019-10-15 1600");
 
     /** The word the user types to invoke this command. */
     private final String keyword;
