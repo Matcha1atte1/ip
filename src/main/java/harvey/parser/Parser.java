@@ -34,6 +34,7 @@ public class Parser {
      * @throws HarveyException if the line does not name a command Harvey knows.
      */
     public static Command parse(String fullCommand) throws HarveyException {
+        assert fullCommand != null : "The UI reads a line from the user, so it is never null";
         CommandType type = parseCommandType(fullCommand);
         String argument = parseArgument(fullCommand);
 
@@ -87,7 +88,10 @@ public class Parser {
      * @return an array of one or two parts.
      */
     private static String[] splitOffKeyword(String input) {
-        return input.split(" ", 2);
+        String[] words = input.split(" ", 2);
+        assert words.length == 1 || words.length == 2
+                : "A limit of 2 cannot produce " + words.length + " parts";
+        return words;
     }
 
 }
