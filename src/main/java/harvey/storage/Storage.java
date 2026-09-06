@@ -61,6 +61,8 @@ public class Storage {
      * @throws HarveyException if the file cannot be written.
      */
     public void save(ArrayList<Task> tasks) throws HarveyException {
+        assert tasks != null : "TaskList.asList() hands out its own list, which is never null";
+
         // Each subclass supplies its own line format, so this never needs to ask whether
         // it is holding a Todo, a Deadline or an Event. Task::toFileFormat is a method
         // reference: shorthand for the lambda task -> task.toFileFormat().
@@ -191,6 +193,8 @@ public class Storage {
                 // data into a wrong task. Rejecting it is safer than guessing.
                 throw new HarveyException("Unknown task type \"" + typeLetter + "\": " + line);
         }
+
+        assert task != null : "Every branch of the switch above either assigns a task or throws";
 
         if (description.isEmpty()) {
             throw new HarveyException("Task has no description: " + line);
