@@ -1,5 +1,8 @@
 package harvey.command;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import harvey.HarveyException;
 /**
  * The set of instructions Harvey understands, and how each one is written.
@@ -65,18 +68,30 @@ public enum CommandType {
      * @throws HarveyException if no command uses that keyword.
      */
     public static CommandType fromKeyword(String keyword) throws HarveyException {
-        // values() returns every constant declared above, so this loop automatically
-        // covers any command added later.
-        for (CommandType command : values()) {
-            if (command.keyword.equals(keyword)) {
-                return command;
-            }
-        }
+        // values() returns every constant declared above, so this automatically covers
+        // any command added later. findFirst stops at the match rather than examining
+        // the rest, the same as returning from inside a loop.
+        return Arrays.stream(values())
+                .filter(command -> command.keyword.equals(keyword))
+                .findFirst()
+                .orElseThrow(() -> unknownKeyword(keyword));
+    }
 
+    /**
+     * Returns the complaint to raise when no command uses a keyword.
+     * <p>
+     * Written as a method rather than inline so that {@link #fromKeyword(String)} stays a
+     * single expression. It is passed to {@code orElseThrow} as a supplier, so the message
+     * is only built when the keyword really was unknown.
+     *
+     * @param keyword the first word the user typed.
+     * @return the exception explaining what Harvey does understand.
+     */
+    private static HarveyException unknownKeyword(String keyword) {
         if (keyword.isEmpty()) {
-            throw new HarveyException("You did not type anything. " + listKeywords());
+            return new HarveyException("You did not type anything. " + listKeywords());
         }
-        throw new HarveyException("I don't recognise the command \"" + keyword + "\". " + listKeywords());
+        return new HarveyException("I don't recognise the command \"" + keyword + "\". " + listKeywords());
     }
 
     /**
@@ -85,13 +100,11 @@ public enum CommandType {
      * @return a sentence naming all the commands.
      */
     public static String listKeywords() {
-        StringBuilder keywords = new StringBuilder("I understand: ");
-        for (int i = 0; i < values().length; i++) {
-            if (i > 0) {
-                keywords.append(", ");
-            }
-            keywords.append(values()[i].keyword);
-        }
-        return keywords.append('.').toString();
+        // joining takes the separator, the opening text and the closing text, so the
+        // "comma before every keyword except the first" rule is stated once as an
+        // argument instead of being spelled out with an index check.
+        return Arrays.stream(values())
+                .map(CommandType::getKeyword)
+                .collect(Collectors.joining(", ", "I understand: ", "."));
     }
 }

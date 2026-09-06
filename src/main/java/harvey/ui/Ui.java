@@ -1,8 +1,9 @@
 package harvey.ui;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import harvey.task.Task;
 import harvey.task.TaskList;
@@ -140,20 +141,18 @@ public class Ui {
      * @return the heading followed by the numbered tasks.
      */
     private String formatNumberedTasks(String heading, TaskList tasks) {
-        List<String> lines = new ArrayList<>();
-        lines.add(heading);
+        List<Task> shown = tasks.asList();
 
-        int taskNumber = 1;
-        for (Task task : tasks.asList()) {
-            // Task.toString() supplies the "[X] description" part.
-            lines.add(taskNumber + "." + task);
-            taskNumber++;
-        }
+        // IntStream.range rather than a stream of the tasks themselves, because each line
+        // needs the task's position as well as the task. Task.toString() supplies the
+        // "[X] description" part, and the position is shown counting from 1.
+        Stream<String> numbered = IntStream.range(0, shown.size())
+                .mapToObj(i -> (i + 1) + "." + shown.get(i));
 
         // A varargs parameter is an array underneath, so a method declared with one also
         // accepts an array. That is what a run of lines whose length is not known until
         // run time has to be passed as.
-        return formatLines(lines.toArray(new String[0]));
+        return formatLines(Stream.concat(Stream.of(heading), numbered).toArray(String[]::new));
     }
 
     /** Prints the banner and welcome message. Text interface only. */

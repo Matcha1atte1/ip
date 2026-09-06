@@ -145,6 +145,16 @@ public class TaskListTest {
     }
 
     @Test
+    public void find_result_canStillBeAddedTo() {
+        // The matches are collected into a mutable list, so the returned TaskList behaves
+        // like any other. Collecting into an immutable list would fail only here.
+        TaskList matches = threeTasks().find("a");
+        matches.add(new Todo("added later"));
+
+        assertEquals(2, matches.size());
+    }
+
+    @Test
     public void find_keywordInNoTask_returnsEmptyList() {
         TaskList tasks = threeTasks();
         assertTrue(tasks.find("nothing here").isEmpty());
