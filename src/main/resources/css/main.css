@@ -8,10 +8,8 @@
     gold: #c9a227;              /* Looked-up colors, so the accent is named in one place. */
     cream: #f4f1ea;
     navy: #14213d;
+    /* A plain backdrop: a photo behind the chat only costs readability. */
     -fx-background-color: #0b0d12;
-    -fx-background-image: url("../images/background.jpg");
-    -fx-background-size: cover;
-    -fx-background-position: center;
 }
 
 .text-field {
@@ -24,7 +22,7 @@
     -fx-border-width: 2px;
     -fx-background-radius: 0;
     -fx-padding: 0 12px 0 12px;
-    -fx-font: 15px "Georgia";
+    -fx-font: 14px "System";
 }
 
 .button {
@@ -32,7 +30,7 @@
     -fx-text-fill: gold;
     -fx-border-color: gold;
     -fx-border-width: 2px;
-    -fx-font: bold 13px "Georgia";
+    -fx-font: bold 13px "System";
     -fx-graphic: url("../images/send.png");
     -fx-content-display: LEFT;
     -fx-graphic-text-gap: 6px;
@@ -52,9 +50,9 @@
 }
 
 .scroll-pane {
-    /* A scrim over the photo. Dark enough that light text on the bubbles always clears
-       the contrast threshold, sheer enough that the picture is still visible behind. */
-    -fx-background-color: rgba(8, 10, 15, 0.58);
+    -fx-background-color: #0b0d12;
+    -fx-background-insets: 0;       /* Removes the default focus border around the chat. */
+    -fx-padding: 0;
 }
 
 .scroll-pane .viewport {
