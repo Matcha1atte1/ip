@@ -1,14 +1,23 @@
 package harvey.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -316,5 +325,71 @@ public class StorageTest {
             offset += part.length;
         }
         return result;
+    }
+
+    @Test
+    public void load_emptyDescriptionBetweenOtherFields_skipped() throws Exception {
+        // Unlike "T | 0 | ", this line still has enough fields, so it reaches the check
+        // for an empty description rather than the check for too few fields.
+        writeFile("D | 0 |  | 2026-10-01");
+        Storage storage = storage();
+
+        assertTrue(storage.load().isEmpty());
+        assertEquals(1, storage.getSkippedLines());
+    }
+
+    @Test
+    public void describe_eachKindOfFileProblem_givesMatchingReason() {
+        assertEquals("permission was denied", Storage.describe(new AccessDeniedException("f")));
+        assertEquals("a file is in the way where the folder should be",
+                Storage.describe(new FileAlreadyExistsException("data")));
+        assertEquals("the file or its folder does not exist", Storage.describe(new NoSuchFileException("f")));
+        assertEquals("the system said: Is a directory",
+                Storage.describe(new FileSystemException("f", null, "Is a directory")));
+    }
+
+    @Test
+    public void describe_problemWithoutReason_fallsBackToMessage() {
+        assertEquals("the system said: disk full", Storage.describe(new IOException("disk full")));
+        // A FileSystemException with no reason must not produce "the system said: null".
+        assertFalse(Storage.describe(new FileSystemException("f")).endsWith("null"));
+    }
+
+    @Test
+    public void loadThenSave_unreadableFile_loadFailsAndSaveRefused() throws Exception {
+        writeFile("T | 0 | precious");
+        Path file = tempDir.resolve("harvey.txt");
+        makeUnreadable(file);
+        Storage storage = storage();
+
+        try {
+            HarveyException loadError = assertThrows(HarveyException.class, storage::load);
+            assertTrue(loadError.getMessage().contains("permission was denied"), loadError.getMessage());
+
+            // The copy fails too, since it has to read the file. Saving must then be refused,
+            // or the task Harvey could not read would be erased.
+            assertNull(storage.getBackupPath());
+            assertFalse(storage.isOverwriteSafe());
+            HarveyException saveError = assertThrows(HarveyException.class, () ->
+                    storage.save(new ArrayList<>()));
+            assertTrue(saveError.getMessage().contains("won't save"), saveError.getMessage());
+        } finally {
+            Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("rw-r--r--"));
+        }
+        assertEquals(List.of("T | 0 | precious"), Files.readAllLines(file));
+    }
+
+    /**
+     * Removes every permission from a file, skipping the test where that cannot work.
+     * <p>
+     * Windows has no POSIX permissions, and an administrator (root) can read any file
+     * regardless of them. In either case the test is skipped rather than failed, because
+     * the behavior it checks cannot be set up there. CI runs it on Linux and macOS.
+     */
+    private static void makeUnreadable(Path file) throws IOException {
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"),
+                "needs POSIX file permissions");
+        Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("---------"));
+        assumeFalse(Files.isReadable(file), "running as a user who can read any file");
     }
 }

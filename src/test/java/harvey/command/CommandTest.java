@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -306,5 +308,113 @@ public class CommandTest {
         assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
         Task task = tasks.get(1);
         assertTrue(!task.isDone());
+    }
+
+    @Test
+    public void execute_markWithoutNumber_exceptionShowsExample() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        MarkCommand command = new MarkCommand("");
+
+        HarveyException e = assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("mark 2"), e.getMessage());
+    }
+
+    @Test
+    public void execute_markOnEmptyList_exceptionSaysNothingToMark() {
+        // Checked before the number, so the user is not told to pick from 1 to 0.
+        MarkCommand command = new MarkCommand("1");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().contains("no tasks yet"), e.getMessage());
+    }
+
+    @Test
+    public void execute_markWord_exceptionSaysNotATaskNumber() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        MarkCommand command = new MarkCommand("book");
+
+        HarveyException e = assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("\"book\" is not a task number"), e.getMessage());
+    }
+
+    @Test
+    public void execute_deleteTaskNumberJustPastEnd_nothingRemoved() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        DeleteCommand command = new DeleteCommand("2");
+
+        assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+        assertEquals(1, tasks.size());
+    }
+
+    @Test
+    public void execute_addTodoWithoutDescription_exceptionUsesArticleA() {
+        AddCommand command = new AddCommand(CommandType.TODO, "");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().startsWith("A todo needs a description."), e.getMessage());
+    }
+
+    @Test
+    public void execute_addEventWithoutDescription_exceptionUsesArticleAn() {
+        AddCommand command = new AddCommand(CommandType.EVENT, "");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().startsWith("An event needs a description."), e.getMessage());
+    }
+
+    @Test
+    public void execute_addDeadlineWithoutBy_exceptionAsksForDueDate() {
+        AddCommand command = new AddCommand(CommandType.DEADLINE, "essay");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().contains("needs a due date after /by"), e.getMessage());
+    }
+
+    @Test
+    public void execute_addDeadlineWithNothingAfterBy_exceptionAsksForDueDate() {
+        AddCommand command = new AddCommand(CommandType.DEADLINE, "essay /by");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().contains("needs a due date after /by"), e.getMessage());
+    }
+
+    @Test
+    public void execute_addDeadlineWithNothingBeforeBy_exceptionThrown() {
+        // A description made only of the option would otherwise save a task named "".
+        AddCommand command = new AddCommand(CommandType.DEADLINE, "/by 2026-10-01");
+
+        assertThrows(HarveyException.class, () -> command.execute(new TaskList(), ui, storage()));
+    }
+
+    @Test
+    public void execute_addEventWithoutTo_exceptionExplainsBothOptions() {
+        AddCommand command = new AddCommand(CommandType.EVENT, "tuition /from 2026-09-10 1600");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(new TaskList(), ui, storage()));
+        assertTrue(e.getMessage().contains("/from") && e.getMessage().contains("/to"), e.getMessage());
+    }
+
+    @Test
+    public void execute_findWithoutKeyword_exceptionShowsExample() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        FindCommand command = new FindCommand("");
+
+        HarveyException e = assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("find book"), e.getMessage());
+    }
+
+    @Test
+    public void execute_addTodo_taskWrittenToSaveFile() throws Exception {
+        // The reply is checked elsewhere; this checks the command really saved.
+        new AddCommand(CommandType.TODO, "read book").execute(new TaskList(), ui, storage());
+
+        assertEquals(List.of("T | 0 | read book"),
+                Files.readAllLines(tempDir.resolve("harvey.txt")));
     }
 }
