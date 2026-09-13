@@ -3,6 +3,7 @@ package harvey.task;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 
 import harvey.HarveyException;
 /**
@@ -19,8 +20,13 @@ public class Deadline extends Task {
      * How a date is shown to the user, e.g. {@code Oct 15 2019}.
      * Deliberately different from the input format, to make the point that the stored
      * value is a date and not the text that was typed.
+     * <p>
+     * The locale is fixed to English. Without it, the month name follows the language of
+     * the computer, e.g. the Chinese for October on one set to Chinese, while every other
+     * word Harvey says stays English.
      */
-    private static final DateTimeFormatter DISPLAY_FORMAT = DateTimeFormatter.ofPattern("MMM d yyyy");
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d yyyy", Locale.ENGLISH);
 
     /** The format the user types and the save file uses, e.g. {@code 2019-10-15}. */
     private static final String INPUT_FORMAT = "yyyy-mm-dd";
