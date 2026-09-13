@@ -1,6 +1,9 @@
 package harvey.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -239,5 +242,79 @@ public class StorageTest {
 
         assertTrue(storage.load().isEmpty());
         assertEquals(1, storage.getSkippedLines());
+    }
+
+    @Test
+    public void load_damagedLine_originalBackedUpBeforeItCanBeOverwritten() throws Exception {
+        writeFile("T | 0 | keep me", "D | 0 | missing its date");
+        Storage storage = storage();
+        storage.load();
+
+        // The next save rewrites the file without the damaged line, so the backup is the
+        // only place that line survives.
+        Path backup = storage.getBackupPath();
+        assertEquals(List.of("T | 0 | keep me", "D | 0 | missing its date"), Files.readAllLines(backup));
+        assertTrue(storage.isOverwriteSafe());
+    }
+
+    @Test
+    public void load_intactFile_noBackupMade() throws Exception {
+        writeFile("T | 0 | read book");
+        Storage storage = storage();
+        storage.load();
+
+        assertNull(storage.getBackupPath());
+        // Only the save file itself should be in the folder. try-with-resources closes the
+        // directory listing, which holds an open handle until it is closed.
+        try (var files = Files.list(tempDir)) {
+            assertEquals(1, files.count());
+        }
+    }
+
+    @Test
+    public void load_invalidBytesOnOneLine_onlyThatLineSkipped() throws Exception {
+        // 0xFF can never appear in UTF-8 text. Before, it made the whole file unreadable.
+        byte[] good = "T | 0 | first\n".getBytes();
+        byte[] bad = {(byte) 0xFF, '\n'};
+        byte[] alsoGood = "T | 1 | second\n".getBytes();
+        Files.write(tempDir.resolve("harvey.txt"), concat(good, bad, alsoGood));
+        Storage storage = storage();
+
+        assertEquals(2, storage.load().size());
+        assertEquals(1, storage.getSkippedLines());
+        assertNotNull(storage.getBackupPath());
+    }
+
+    @Test
+    public void load_saveFileIsAFolder_exceptionThrown() throws Exception {
+        Files.createDirectory(tempDir.resolve("harvey.txt"));
+        Storage storage = storage();
+
+        HarveyException e = assertThrows(HarveyException.class, storage::load);
+        assertTrue(e.getMessage().contains("is a folder"), e.getMessage());
+    }
+
+    @Test
+    public void save_folderPathIsAFile_exceptionGivesTheReason() throws Exception {
+        Files.writeString(tempDir.resolve("nested"), "not a folder");
+        Storage storage = new Storage(tempDir.resolve("nested").toString(), "harvey.txt");
+
+        HarveyException e = assertThrows(HarveyException.class, () -> storage.save(new ArrayList<>()));
+        assertTrue(e.getMessage().contains("because"), e.getMessage());
+    }
+
+    /** Joins byte arrays end to end, for writing a file with chosen bytes in it. */
+    private static byte[] concat(byte[]... parts) {
+        int length = 0;
+        for (byte[] part : parts) {
+            length += part.length;
+        }
+        byte[] result = new byte[length];
+        int offset = 0;
+        for (byte[] part : parts) {
+            System.arraycopy(part, 0, result, offset, part.length);
+            offset += part.length;
+        }
+        return result;
     }
 }

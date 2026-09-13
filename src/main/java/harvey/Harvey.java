@@ -89,16 +89,34 @@ public class Harvey {
             if (storage.getSkippedLines() > 0) {
                 warning = ui.formatError("I could not understand " + storage.getSkippedLines()
                         + " line(s) in your saved file, so those tasks were left out. "
-                        + "Everything else was loaded.");
+                        + "Everything else was loaded. " + describeBackup()).trim();
             }
         } catch (HarveyException e) {
             // Being unable to read the saved file is not a reason to refuse to start,
             // so Harvey says what went wrong and carries on with nothing loaded.
-            warning = ui.formatError(e.getMessage() + " Starting with an empty list.");
+            warning = ui.formatError(e.getMessage() + " Starting with an empty list. "
+                    + describeBackup()).trim();
             loaded = new TaskList();
         }
         this.tasks = loaded;
         this.startupWarning = warning;
+    }
+
+    /**
+     * Returns the sentence telling the user what became of a save file that could not be
+     * fully loaded: where its backup is, or that saving is off because there is none.
+     *
+     * @return the sentence to add to a loading warning, or an empty string if no data was at risk.
+     */
+    private String describeBackup() {
+        if (storage.getBackupPath() != null) {
+            return "The original file is backed up at " + storage.getBackupPath() + ".";
+        }
+        if (!storage.isOverwriteSafe()) {
+            return "I could not back it up either, so I won't save over it until you move it "
+                    + "somewhere safe and restart me.";
+        }
+        return "";
     }
 
     /**
