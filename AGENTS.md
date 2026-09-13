@@ -43,10 +43,20 @@ Run them with `./gradlew test`; `./gradlew build` runs them too.
 Name test methods `featureUnderTest_testScenario_expectedBehavior()`, e.g.
 `get_taskNumberJustPastEnd_exceptionThrown()`.
 
-**Coverage target: roughly the top 50% highest-value methods** — the complex, core or
-critical ones, rather than an even spread. Trivial getters and `toString` methods on
-simple classes are not worth testing; parsing, task numbering, and anything that reads or
-writes the save file are.
+**Coverage target: nearly all code that can be tested automatically.** That means every
+class outside the GUI, including error paths, the `Harvey` class that ties the parts
+together, and the text interface's reading and printing (by swapping `System.in` and
+`System.out` for in-memory streams). Leave out only:
+
+* the JavaFX GUI (`DialogBox`, `MainWindow`, `Main`, `Launcher`), which is checked by hand
+  using `docs/ManualTesting.md`;
+* code that touches the real `./data/harvey.txt` (`Harvey()` and `Harvey.main`);
+* branches that cannot be reached, such as `default:` cases for every enum constant already
+  handled, and the failure side of `assert` statements.
+
+Tests must pass whatever the computer's language setting, and a test that cannot run on
+some OS (e.g. one needing POSIX file permissions) should be skipped there with an
+assumption rather than fail.
 
 **Update the JUnit tests as part of any code change**, in the same commit, so the project
 stays at that target. A change that adds or alters non-trivial behaviour should add or
