@@ -10,20 +10,18 @@
     -fx-background-color: #f4f1ea;                  /* The user speaks on cream stationery. */
     -fx-text-fill: #1b2029;
     -fx-border-color: #c9a227;
-    -fx-border-width: 0 0 0 3px;                    /* A single gold edge, not a full frame. */
-    -fx-background-radius: 1em 1em 0 1em;
-    -fx-border-radius: 1em 1em 0 1em;
-    -fx-font: 16px "Georgia";
-    /* Lifts every bubble off the photograph, so the edges never merge into it. */
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 12, 0.3, 0, 3);
+    -fx-border-width: 0 3px 0 0;                    /* A single gold edge, on the user's side. */
+    -fx-background-radius: 12px 12px 0 12px;
+    -fx-border-radius: 12px 12px 0 12px;
+    -fx-font: 14px "System";                        /* Compact and legible at small sizes. */
 }
 
 .reply-label {
     -fx-background-color: #16233f;                  /* Harvey answers in navy. */
     -fx-text-fill: #ffffff;
-    -fx-border-width: 0 3px 0 0;                    /* Mirrored, since the box is flipped. */
-    -fx-background-radius: 1em 1em 1em 0;
-    -fx-border-radius: 1em 1em 1em 0;
+    -fx-border-width: 0 0 0 3px;                    /* Mirrored, since Harvey sits on the left. */
+    -fx-background-radius: 0 12px 12px 12px;
+    -fx-border-radius: 0 12px 12px 12px;
 }
 
 .add-label {
@@ -47,9 +45,4 @@
     -fx-border-color: #ff4d5b;
     -fx-text-fill: #ffe3e3;
     -fx-font-weight: bold;
-}
-
-#displayPicture {
-    /* Shadow effect on image. */
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 10, 0.4, 3, 4);
 }
