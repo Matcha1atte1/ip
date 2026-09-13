@@ -13,25 +13,34 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.shape.Circle;
 /**
- * One message in the conversation: a picture of the speaker beside what they said.
+ * One message in the conversation.
+ * <p>
+ * The two speakers are deliberately shown differently, because this is a person using a
+ * tool rather than two people chatting. The user's message is a compact bubble on the
+ * right with no picture, since the user knows who they are. Harvey's reply is a card that
+ * takes the rest of the row beside a small avatar, since his replies (task lists, search
+ * results) are the long text that needs the width.
  * <p>
  * The two static factory methods are the way to make one. A constructor could not do the
- * job alone, because the user's box and Harvey's differ after construction: Harvey's is
- * mirrored so the two speakers face each other from opposite sides.
+ * job alone, because the user's box and Harvey's differ after construction.
  */
 public class DialogBox extends HBox {
+    /** Fraction of the row the user's bubble may fill, so it never looks like a reply. */
+    private static final double USER_BUBBLE_WIDTH_RATIO = 0.75;
+
     @FXML
     private Label dialog;
     @FXML
     private ImageView displayPicture;
 
     /**
-     * Builds a box in the user's layout, with the picture on the right.
+     * Builds an unstyled box, with the text followed by the picture.
      *
      * @param text the message to show.
-     * @param img  the speaker's picture.
+     * @param img  the speaker's picture, or null if the box will not show one.
      */
     private DialogBox(String text, Image img) {
         try {
@@ -56,12 +65,27 @@ public class DialogBox extends HBox {
         displayPicture.setClip(clip);
     }
 
-    /** Flips the box so the picture is on the left and the text on the right. */
-    private void flip() {
+    /**
+     * Styles the box as the user's: the picture is dropped and the bubble is capped to part
+     * of the row's width. The cap is a binding, so it is recomputed whenever the window is
+     * resized.
+     */
+    private void styleAsUser() {
+        getChildren().remove(displayPicture);
+        dialog.maxWidthProperty().bind(widthProperty().multiply(USER_BUBBLE_WIDTH_RATIO));
+    }
+
+    /**
+     * Styles the box as Harvey's: the avatar moves to the left and the reply grows to fill
+     * the rest of the row.
+     */
+    private void styleAsHarvey() {
         ObservableList<Node> tmp = FXCollections.observableArrayList(this.getChildren());
         Collections.reverse(tmp);
         getChildren().setAll(tmp);
         setAlignment(Pos.TOP_LEFT);
+        dialog.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(dialog, Priority.ALWAYS);
         dialog.getStyleClass().add("reply-label");
     }
 
@@ -97,18 +121,20 @@ public class DialogBox extends HBox {
     }
 
     /**
-     * Returns a box showing something the user said.
+     * Returns a box showing something the user said, as a right-aligned bubble with no
+     * picture.
      *
      * @param text the message.
-     * @param img  the user's picture.
      * @return the new box.
      */
-    public static DialogBox getUserDialog(String text, Image img) {
-        return new DialogBox(text, img);
+    public static DialogBox getUserDialog(String text) {
+        DialogBox db = new DialogBox(text, null);
+        db.styleAsUser();
+        return db;
     }
 
     /**
-     * Returns a box showing something Harvey said, mirrored and colored by command.
+     * Returns a box showing something Harvey said, beside his avatar and colored by command.
      *
      * @param text        the message.
      * @param img         Harvey's picture.
@@ -117,7 +143,7 @@ public class DialogBox extends HBox {
      */
     public static DialogBox getHarveyDialog(String text, Image img, String commandType) {
         DialogBox db = new DialogBox(text, img);
-        db.flip();
+        db.styleAsHarvey();
         db.changeDialogStyle(commandType);
         return db;
     }

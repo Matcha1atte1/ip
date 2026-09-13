@@ -35,13 +35,19 @@ public class MainWindow extends AnchorPane {
     /** The chatbot answering the user. Supplied by {@link Main} after this is loaded. */
     private Harvey harvey;
 
-    private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/User.png"));
     private final Image harveyImage = new Image(this.getClass().getResourceAsStream("/images/Harvey.png"));
 
-    /** Keeps the view scrolled to the newest message as the conversation grows. */
+    /**
+     * Scrolls to the newest message whenever the conversation grows.
+     * <p>
+     * A listener is used rather than binding the scroll position, because a bound value
+     * can no longer be changed by anything else: the user could not scroll back up to
+     * read earlier messages.
+     */
     @FXML
     public void initialize() {
-        scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        dialogContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
+                scrollPane.setVvalue(scrollPane.getVmax()));
     }
 
     /**
@@ -81,7 +87,7 @@ public class MainWindow extends AnchorPane {
 
         String response = harvey.getResponse(input);
         dialogContainer.getChildren().addAll(
-                DialogBox.getUserDialog(input, userImage),
+                DialogBox.getUserDialog(input),
                 DialogBox.getHarveyDialog(response, harveyImage, harvey.getCommandType())
         );
         userInput.clear();

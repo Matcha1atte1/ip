@@ -16,8 +16,11 @@ public class Main extends Application {
     /** Smallest the window may be shrunk to, so the input row is never squeezed away. */
     private static final double MIN_HEIGHT = 320;
 
-    /** Smallest usable width, below which replies wrap into unreadable slivers. */
-    private static final double MIN_WIDTH = 460;
+    /**
+     * Smallest usable width, below which replies wrap into unreadable slivers. Kept small,
+     * since the app is likely to share the screen with other windows.
+     */
+    private static final double MIN_WIDTH = 360;
 
     /** The chatbot behind the window. Built here so the window itself holds no logic. */
     private final Harvey harvey = new Harvey();
