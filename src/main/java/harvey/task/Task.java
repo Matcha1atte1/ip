@@ -30,6 +30,15 @@ public class Task {
         return (isDone ? "X" : " "); // mark done task with X
     }
 
+    /**
+     * Returns whether this task has been completed.
+     *
+     * @return true if the task is marked as done.
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
     /** Records that this task has been completed. */
     public void markAsDone() {
         this.isDone = true;
@@ -66,6 +75,25 @@ public class Task {
         // 1 and 0 are used rather than the "X" and " " of the display form, because a
         // space is easy to lose when the line is split back up during loading.
         return (isDone ? "1" : "0") + " | " + description;
+    }
+
+    /**
+     * Returns whether another task describes the same thing as this one, so that adding it
+     * would only create a copy.
+     * <p>
+     * Tasks count as the same when they are the same kind and their descriptions match
+     * ignoring case; subclasses add their dates to the comparison. Whether a task is done
+     * is left out, because it is the state of a task rather than one of its details.
+     * <p>
+     * This is not an override of {@code equals}. Two stored tasks with the same details
+     * are still two separate entries in the list, and {@code equals} is what the list uses
+     * to tell entries apart, e.g. in {@code indexOf}.
+     *
+     * @param other the task to compare against.
+     * @return true if the two tasks have the same details.
+     */
+    public boolean hasSameDetails(Task other) {
+        return getClass() == other.getClass() && description.equalsIgnoreCase(other.description);
     }
 
     /**

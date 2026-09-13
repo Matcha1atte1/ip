@@ -11,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import harvey.HarveyException;
 import harvey.storage.Storage;
+import harvey.task.Task;
 import harvey.task.TaskList;
 import harvey.ui.Ui;
 
@@ -232,5 +233,78 @@ public class CommandTest {
                 command.execute(tasks, ui, storage()));
         assertTrue(e.getMessage().contains("yyyy-mm-dd HHmm"));
         assertTrue(tasks.isEmpty());
+    }
+
+    @Test
+    public void execute_addDuplicateTodoInOtherCase_exceptionThrownAndNothingAdded() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        AddCommand command = new AddCommand(CommandType.TODO, "Read Book");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("task 1"), e.getMessage());
+        assertEquals(1, tasks.size());
+    }
+
+    @Test
+    public void execute_addDuplicateOfClosedTask_messageSuggestsUnmark() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        new MarkCommand("1").execute(tasks, ui, storage());
+        AddCommand command = new AddCommand(CommandType.TODO, "read book");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("unmark 1"), e.getMessage());
+    }
+
+    @Test
+    public void execute_addDeadlineSameDescriptionOtherDate_added() throws HarveyException {
+        TaskList tasks = new TaskList();
+        new AddCommand(CommandType.DEADLINE, "essay /by 2026-10-01").execute(tasks, ui, storage());
+        new AddCommand(CommandType.DEADLINE, "essay /by 2026-10-02").execute(tasks, ui, storage());
+
+        assertEquals(2, tasks.size());
+    }
+
+    @Test
+    public void execute_addDeadlineWithByTwice_exceptionNamesTheOption() {
+        TaskList tasks = new TaskList();
+        AddCommand command = new AddCommand(CommandType.DEADLINE, "essay /by 2026-10-01 /by 2026-11-01");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("/by more than once"), e.getMessage());
+        assertTrue(tasks.isEmpty());
+    }
+
+    @Test
+    public void execute_addEventWithToBeforeFrom_exceptionExplainsOrder() {
+        TaskList tasks = new TaskList();
+        AddCommand command = new AddCommand(CommandType.EVENT,
+                "tuition Sarah /to 2026-09-10 1800 /from 2026-09-10 1600");
+
+        HarveyException e = assertThrows(HarveyException.class, () ->
+                command.execute(tasks, ui, storage()));
+        assertTrue(e.getMessage().contains("/from before /to"), e.getMessage());
+        assertTrue(tasks.isEmpty());
+    }
+
+    @Test
+    public void execute_markTaskAlreadyDone_exceptionThrown() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        new MarkCommand("1").execute(tasks, ui, storage());
+        MarkCommand command = new MarkCommand("1");
+
+        assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+    }
+
+    @Test
+    public void execute_unmarkTaskNotDone_exceptionThrownAndTaskUnchanged() throws HarveyException {
+        TaskList tasks = listWithOneTodo();
+        UnmarkCommand command = new UnmarkCommand("1");
+
+        assertThrows(HarveyException.class, () -> command.execute(tasks, ui, storage()));
+        Task task = tasks.get(1);
+        assertTrue(!task.isDone());
     }
 }

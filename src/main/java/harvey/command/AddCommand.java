@@ -50,6 +50,7 @@ public class AddCommand extends Command {
     @Override
     public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task task = createTask(type, argument);
+        requireNotDuplicate(task, tasks, ui);
         if (task instanceof Event event) {
             requireNoClash(event, tasks, ui);
         }
@@ -61,6 +62,35 @@ public class AddCommand extends Command {
         return ui.formatLines("Consider it filed:",
                 "  " + task,
                 ui.formatTaskCount(tasks.size()));
+    }
+
+    /**
+     * Checks that a task about to be added is not a copy of one already stored.
+     * <p>
+     * Checked before the clash check, because an event identical to a stored one also
+     * clashes with it, and "you already have this" is the more accurate thing to say.
+     *
+     * @param task  the task being added.
+     * @param tasks the tasks already stored.
+     * @param ui    the source of the reply format, used to lay the message out.
+     * @throws HarveyException if a task with the same details is already in the list.
+     */
+    private static void requireNotDuplicate(Task task, TaskList tasks, Ui ui) throws HarveyException {
+        Optional<Task> duplicate = tasks.findDuplicate(task);
+        if (duplicate.isEmpty()) {
+            return;
+        }
+
+        int duplicateNumber = tasks.asList().indexOf(duplicate.get()) + 1;
+        // A finished copy is the one case where adding again is understandable, so the
+        // user is pointed at the command that does what they most likely want.
+        String advice = duplicate.get().isDone()
+                ? "Nothing was added. It's closed; use unmark " + duplicateNumber + " to reopen it."
+                : "Nothing was added.";
+        throw new HarveyException(ui.formatLines(
+                "You already have that on the docket, as task " + duplicateNumber + ":",
+                "  " + duplicate.get(),
+                advice));
     }
 
     /**
@@ -127,6 +157,7 @@ public class AddCommand extends Command {
             case TODO:
                 return new Todo(argument);
             case DEADLINE:
+                requireAtMostOnce(argument, OPTION_BY, command);
                 // "return book /by Sunday" splits into "return book" and "Sunday".
                 String[] parts = splitAtOption(argument, OPTION_BY,
                         "A deadline needs a due date after " + OPTION_BY + ". For example: "
@@ -138,6 +169,9 @@ public class AddCommand extends Command {
                 // An event needs two separators, so split at "/from" first and then at "/to".
                 String eventHelp = "An event needs a start after " + OPTION_FROM + " and an end after "
                         + OPTION_TO + ". For example: " + command.getExample();
+                requireAtMostOnce(argument, OPTION_FROM, command);
+                requireAtMostOnce(argument, OPTION_TO, command);
+                requireInOrder(argument, OPTION_FROM, OPTION_TO, command);
                 String[] fromParts = splitAtOption(argument, OPTION_FROM, eventHelp);
                 String[] toParts = splitAtOption(fromParts[1], OPTION_TO, eventHelp);
                 return new Event(fromParts[0], Event.parseDateTime(toParts[0]),
@@ -146,6 +180,46 @@ public class AddCommand extends Command {
                 // Parser sends only the three commands named above here, so reaching this
                 // means a fourth was routed here without being given a task to build.
                 throw new HarveyException(command.getKeyword() + " does not create a task.");
+        }
+    }
+
+    /**
+     * Refuses an option given more than once, such as two {@code /by} dates.
+     * <p>
+     * Without this, the first occurrence is split at and everything after it, including
+     * the second option, is read as one date, which fails with a message about the date
+     * rather than about the real mistake.
+     *
+     * @param text    the text typed after the command word.
+     * @param option  the option that may appear at most once.
+     * @param command the command typed, whose example is shown.
+     * @throws HarveyException if the option appears twice or more.
+     */
+    private static void requireAtMostOnce(String text, String option, CommandType command)
+            throws HarveyException {
+        int first = text.indexOf(option);
+        if (first >= 0 && text.indexOf(option, first + option.length()) >= 0) {
+            throw new HarveyException("You gave " + option + " more than once. Give it exactly once, "
+                    + "for example: " + command.getExample());
+        }
+    }
+
+    /**
+     * Refuses two options given in the wrong order, such as {@code /to} before {@code /from}.
+     *
+     * @param text    the text typed after the command word.
+     * @param earlier the option that must come first.
+     * @param later   the option that must come second.
+     * @param command the command typed, whose example is shown.
+     * @throws HarveyException if both options are present and {@code later} comes first.
+     */
+    private static void requireInOrder(String text, String earlier, String later, CommandType command)
+            throws HarveyException {
+        int earlierPosition = text.indexOf(earlier);
+        int laterPosition = text.indexOf(later);
+        if (earlierPosition >= 0 && laterPosition >= 0 && laterPosition < earlierPosition) {
+            throw new HarveyException("Put " + earlier + " before " + later + ", for example: "
+                    + command.getExample());
         }
     }
 

@@ -40,6 +40,16 @@ public class Deadline extends Task {
     }
 
     /**
+     * {@inheritDoc}
+     * A deadline also needs the same due date: the same essay due on two dates is two tasks.
+     */
+    @Override
+    public boolean hasSameDetails(Task other) {
+        // super checks the class first, so the cast below is safe once it has passed.
+        return super.hasSameDetails(other) && by.equals(((Deadline) other).by);
+    }
+
+    /**
      * Turns typed text into a date.
      * <p>
      * This lives here, next to the field it produces, so that the one place that decides
