@@ -58,7 +58,7 @@ public class AddCommand extends Command {
         // Saved before the reply is returned, so that a failure to write the file is
         // reported as an error instead of being hidden behind a cheerful confirmation.
         storage.save(tasks.asList());
-        return ui.formatLines("Got it. I've added this task:",
+        return ui.formatLines("Consider it filed:",
                 "  " + task,
                 ui.formatTaskCount(tasks.size()));
     }

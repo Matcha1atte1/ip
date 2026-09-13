@@ -27,8 +27,11 @@ public class Ui {
             + "|  _  | / ___ \\ |  _ <   \\ V /  | |___   | |  \n"
             + "|_| |_|/_/   \\_\\|_| \\_\\   \\_/   |_____|  |_|  ";
 
-    /** Prefix put in front of anything that went wrong, so mistakes read consistently. */
-    private static final String ERROR_PREFIX = "Sorry! ";
+    /**
+     * Prefix put in front of anything that went wrong, so mistakes read consistently.
+     * Harvey is a lawyer, so he objects rather than apologizes.
+     */
+    private static final String ERROR_PREFIX = "Objection! ";
 
     /** Reads the lines the user types. Kept as a field so one Scanner serves the whole run. */
     private final Scanner scanner;
@@ -67,7 +70,7 @@ public class Ui {
      * @return the greeting.
      */
     public String formatGreeting() {
-        return formatLines("Hello! I'm Harvey.", "What can I do for you?");
+        return formatLines("Harvey Specter. I close things.", "What's the case?");
     }
 
     /**
@@ -91,13 +94,13 @@ public class Ui {
      * <p>
      * Adding and deleting both end their reply this way, so the wording lives here rather
      * than being spelled out in each command. Keeping it in one place is also what makes
-     * the singular case worth handling: "1 task" instead of "1 tasks".
+     * the singular case worth handling: "1 case" instead of "1 cases".
      *
      * @param count how many tasks remain.
      * @return the closing sentence of an add or delete reply.
      */
     public String formatTaskCount(int count) {
-        return "Now you have " + count + (count == 1 ? " task" : " tasks") + " in the list.";
+        return "You've got " + count + (count == 1 ? " case" : " cases") + " on the docket.";
     }
 
     /**
@@ -106,16 +109,16 @@ public class Ui {
      * @return the farewell.
      */
     public String formatFarewell() {
-        return "Bye. Hope to see you again soon!";
+        return "We're done here. Go win something.";
     }
 
     /**
      * Returns a report of something that went wrong.
-     * Callers pass only the explanation; the apology in front is added here so that
+     * Callers pass only the explanation; the objection in front is added here so that
      * every error reads the same way.
      *
      * @param message what went wrong, phrased for the user.
-     * @return the explanation, with the apology in front.
+     * @return the explanation, with the objection in front.
      */
     public String formatError(String message) {
         return ERROR_PREFIX + message;
@@ -131,7 +134,7 @@ public class Ui {
      * @return the heading followed by the numbered tasks.
      */
     public String formatTaskList(TaskList tasks) {
-        return formatNumberedTasks("Here are the tasks in your list:", tasks);
+        return formatNumberedTasks("Here's your docket:", tasks);
     }
 
     /**
@@ -144,7 +147,7 @@ public class Ui {
      * @return the heading followed by the numbered matches.
      */
     public String formatMatchingTasks(TaskList tasks) {
-        return formatNumberedTasks("Here are the matching tasks in your list:", tasks);
+        return formatNumberedTasks("Here's what I dug up:", tasks);
     }
 
     /**

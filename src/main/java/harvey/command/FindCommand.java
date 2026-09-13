@@ -36,7 +36,7 @@ public class FindCommand extends Command {
         if (matches.isEmpty()) {
             // Reported as a problem rather than an empty list, so the reply is never
             // just a heading with nothing under it.
-            throw new HarveyException("No task matches \"" + keyword + "\".");
+            throw new HarveyException("Nothing on your docket matches \"" + keyword + "\".");
         }
         return ui.formatMatchingTasks(matches);
     }

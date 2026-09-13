@@ -89,9 +89,9 @@ public enum CommandType {
      */
     private static HarveyException unknownKeyword(String keyword) {
         if (keyword.isEmpty()) {
-            return new HarveyException("You did not type anything. " + listKeywords());
+            return new HarveyException("You didn't say anything, and I don't read minds. " + listKeywords());
         }
-        return new HarveyException("I don't recognise the command \"" + keyword + "\". " + listKeywords());
+        return new HarveyException("I don't negotiate with gibberish like \"" + keyword + "\". " + listKeywords());
     }
 
     /**

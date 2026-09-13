@@ -79,3 +79,21 @@
     -fx-pref-height: 0;
     -fx-opacity: 0;
 }
+
+/* The header bar: Harvey's name in a serif, like the letterhead of a law firm. */
+.header {
+    -fx-background-color: navy;
+    -fx-border-color: transparent transparent gold transparent;
+    -fx-border-width: 0 0 2px 0;
+    -fx-padding: 0 12px 0 12px;
+}
+
+.header-name {
+    -fx-text-fill: cream;
+    -fx-font: bold 16px "Georgia";
+}
+
+.header-tagline {
+    -fx-text-fill: gold;
+    -fx-font: italic 11px "Georgia";
+}
