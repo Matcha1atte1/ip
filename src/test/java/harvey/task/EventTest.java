@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -145,5 +146,36 @@ public class EventTest {
         String[] fields = line.split(" \\| ");
         assertEquals(FOUR_PM, Event.parseDateTime(fields[3]));
         assertEquals(SIX_PM, Event.parseDateTime(fields[4]));
+    }
+
+    @Test
+    public void toString_computerSetToChinese_monthAndPmStillInEnglish() throws HarveyException {
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.CHINA);
+            assertEquals("[E][ ] tuition Sarah (from: Sep 10 2026 4:00PM to: Sep 10 2026 6:00PM)",
+                    new Event("tuition Sarah", FOUR_PM, SIX_PM).toString());
+        } finally {
+            Locale.setDefault(original);
+        }
+    }
+
+    @Test
+    public void hasSameDetails_sameDescriptionAndTimes_returnsTrue() throws HarveyException {
+        Event event = new Event("tuition", FOUR_PM, SIX_PM);
+        assertTrue(event.hasSameDetails(new Event("Tuition", FOUR_PM, SIX_PM)));
+    }
+
+    @Test
+    public void hasSameDetails_sameStartOtherEnd_returnsFalse() throws HarveyException {
+        // Both times take part in the comparison, not just the start.
+        Event event = new Event("tuition", FOUR_PM, SIX_PM);
+        assertFalse(event.hasSameDetails(new Event("tuition", FOUR_PM, EIGHT_PM)));
+    }
+
+    @Test
+    public void hasSameDetails_otherDescriptionSameTimes_returnsFalse() throws HarveyException {
+        Event event = new Event("tuition", FOUR_PM, SIX_PM);
+        assertFalse(event.hasSameDetails(new Event("dinner", FOUR_PM, SIX_PM)));
     }
 }

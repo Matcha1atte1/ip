@@ -3,16 +3,22 @@ package harvey.task;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link Task#hasKeyword(String)}, which decides what {@code find} matches.
+ * Tests {@link Task#hasKeyword(String)}, which decides what {@code find} matches, and
+ * {@link Task#hasSameDetails(Task)}, which decides what counts as a duplicate.
  * <p>
  * Only the description is searched, so the tests also pin down what must not match:
  * the type marker, the done marker, and a deadline's date all appear in the displayed
  * form of a task but are not part of its description.
  */
 public class TaskTest {
+    /** A date for the deadline tests. */
+    private static final LocalDate OCT_1 = LocalDate.of(2026, 10, 1);
+
     @Test
     public void hasKeyword_wholeWordInDescription_returnsTrue() {
         assertTrue(new Todo("read book").hasKeyword("book"));
@@ -57,5 +63,47 @@ public class TaskTest {
         assertTrue(deadline.hasKeyword("return"));
         // The date is a field of its own, not part of the description.
         assertFalse(deadline.hasKeyword("2019"));
+    }
+
+    @Test
+    public void hasSameDetails_todosDifferingOnlyInCase_returnsTrue() {
+        assertTrue(new Todo("Read Book").hasSameDetails(new Todo("read book")));
+    }
+
+    @Test
+    public void hasSameDetails_oneDoneOneNot_stillReturnsTrue() {
+        // Being done is the state of a task, not one of its details.
+        Todo done = new Todo("read book");
+        done.markAsDone();
+        assertTrue(done.hasSameDetails(new Todo("read book")));
+    }
+
+    @Test
+    public void hasSameDetails_todoAgainstDeadline_returnsFalseBothWays() {
+        // Checked in both directions, because each call runs a different class's method.
+        Todo todo = new Todo("essay");
+        Deadline deadline = new Deadline("essay", OCT_1);
+        assertFalse(todo.hasSameDetails(deadline));
+        assertFalse(deadline.hasSameDetails(todo));
+    }
+
+    @Test
+    public void hasSameDetails_deadlinesWithSameDate_returnsTrue() {
+        assertTrue(new Deadline("essay", OCT_1).hasSameDetails(new Deadline("ESSAY", OCT_1)));
+    }
+
+    @Test
+    public void hasSameDetails_deadlinesWithOtherDate_returnsFalse() {
+        assertFalse(new Deadline("essay", OCT_1).hasSameDetails(new Deadline("essay", OCT_1.plusDays(1))));
+    }
+
+    @Test
+    public void isDone_markedThenUnmarked_followsEachChange() {
+        Todo todo = new Todo("read book");
+        assertFalse(todo.isDone());
+        todo.markAsDone();
+        assertTrue(todo.isDone());
+        todo.markAsNotDone();
+        assertFalse(todo.isDone());
     }
 }

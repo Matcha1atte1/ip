@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -96,5 +97,19 @@ public class DeadlineTest {
         // parseDate accepts it. This is the property that keeps saved tasks loadable.
         String savedDate = line.substring(line.lastIndexOf(" | ") + 3);
         assertEquals(original, Deadline.parseDate(savedDate));
+    }
+
+    @Test
+    public void toString_computerSetToChinese_monthStillInEnglish() {
+        // Locale.setDefault is what a computer's language setting changes. It is global,
+        // so it is put back in finally even if the assertion fails.
+        Locale original = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.CHINA);
+            assertEquals("[D][ ] return book (by: Oct 15 2019)",
+                    new Deadline("return book", LocalDate.of(2019, 10, 15)).toString());
+        } finally {
+            Locale.setDefault(original);
+        }
     }
 }

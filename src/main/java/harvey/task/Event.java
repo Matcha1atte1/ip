@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.Locale;
 
 import harvey.HarveyException;
 /**
@@ -22,9 +23,12 @@ public class Event extends Task {
      * How a time is shown to the user, e.g. {@code Oct 15 2019 2:00PM}.
      * Deliberately different from the input format, to make the point that the stored
      * value is a moment in time and not the text that was typed.
+     * <p>
+     * The locale is fixed to English, as in {@link Deadline}. Both the month name and the
+     * AM/PM marker would otherwise follow the language of the computer.
      */
     private static final DateTimeFormatter DISPLAY_FORMAT =
-            DateTimeFormatter.ofPattern("MMM d yyyy h:mma");
+            DateTimeFormatter.ofPattern("MMM d yyyy h:mma", Locale.ENGLISH);
 
     /**
      * The format the user types and the save file uses, e.g. {@code 2019-10-15 1400}.
