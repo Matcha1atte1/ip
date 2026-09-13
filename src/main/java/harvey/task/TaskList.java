@@ -145,6 +145,22 @@ public class TaskList {
     }
 
     /**
+     * Returns a task already in the list with the same details as the given one.
+     * <p>
+     * Like {@link #findClash(Event)}, a task is never reported as a copy of itself, and
+     * only the first match is returned because one is enough for the user to act on.
+     *
+     * @param candidate the task being considered.
+     * @return the first task with the same details, or empty if the candidate is new.
+     */
+    public Optional<Task> findDuplicate(Task candidate) {
+        assert candidate != null : "AddCommand only checks a task it has just built";
+        return tasks.stream()
+                .filter(task -> task != candidate && task.hasSameDetails(candidate))
+                .findFirst();
+    }
+
+    /**
      * Returns the tasks whose description contains the given keyword.
      * <p>
      * The result is a new list, so the matches can be shown without disturbing the

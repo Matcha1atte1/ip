@@ -1,10 +1,14 @@
 package harvey.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import harvey.HarveyException;
 import harvey.command.AddCommand;
@@ -15,6 +19,9 @@ import harvey.command.FindCommand;
 import harvey.command.ListCommand;
 import harvey.command.MarkCommand;
 import harvey.command.UnmarkCommand;
+import harvey.storage.Storage;
+import harvey.task.TaskList;
+import harvey.ui.Ui;
 
 /**
  * Tests {@link Parser}, whose whole job is choosing which {@link Command} a line means.
@@ -22,6 +29,10 @@ import harvey.command.UnmarkCommand;
  * command does is the business of that command's own tests.
  */
 public class ParserTest {
+    /** An empty folder for the tests that run the parsed command. */
+    @TempDir
+    private Path tempDir;
+
     @Test
     public void parse_bye_returnsExitCommandThatEndsTheSession() throws HarveyException {
         Command command = Parser.parse("bye");
@@ -88,8 +99,7 @@ public class ParserTest {
 
     @Test
     public void parse_keywordFollowedByExtraSpaces_stillRecognized() throws HarveyException {
-        // Ui trims the ends of the line, but spaces between the keyword and the
-        // argument are left for the parser to cope with.
+        // Spaces between the keyword and the argument are the parser's to cope with.
         assertInstanceOf(AddCommand.class, Parser.parse("todo    read book"));
     }
 
@@ -102,5 +112,40 @@ public class ParserTest {
     public void parse_findWithoutKeyword_stillReturnsFindCommand() throws HarveyException {
         // A missing keyword is FindCommand's to report when it runs.
         assertInstanceOf(FindCommand.class, Parser.parse("find"));
+    }
+
+    @Test
+    public void parse_leadingAndTrailingSpaces_stillRecognized() throws HarveyException {
+        // The window passes the line untrimmed, so the parser must trim it itself.
+        assertInstanceOf(ListCommand.class, Parser.parse("   list   "));
+    }
+
+    @Test
+    public void parse_tabAfterKeyword_stillRecognized() throws HarveyException {
+        assertInstanceOf(AddCommand.class, Parser.parse("todo\tread book"));
+    }
+
+    @Test
+    public void parse_upperCaseKeyword_stillRecognized() throws HarveyException {
+        assertInstanceOf(ListCommand.class, Parser.parse("LIST"));
+    }
+
+    @Test
+    public void parse_repeatedSpacesInDescription_collapsedToOne() throws HarveyException {
+        TaskList tasks = new TaskList();
+        Storage storage = new Storage(tempDir.toString(), "t.txt");
+        Parser.parse("todo  read \t  book").execute(tasks, new Ui(), storage);
+        assertEquals("[T][ ] read book", tasks.get(1).toString());
+    }
+
+    @Test
+    public void parse_byeWithExtraWords_exceptionThrown() {
+        // Quitting on a line the user may not have meant as a goodbye would lose their place.
+        assertThrows(HarveyException.class, () -> Parser.parse("bye now"));
+    }
+
+    @Test
+    public void parse_listWithExtraWords_exceptionThrown() {
+        assertThrows(HarveyException.class, () -> Parser.parse("list everything"));
     }
 }

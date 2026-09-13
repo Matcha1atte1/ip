@@ -22,6 +22,11 @@ public class UnmarkCommand extends Command {
     @Override
     public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         Task unmarked = tasks.get(parseTaskNumber(argument, tasks, CommandType.UNMARK));
+        // Reported for the same reason as in MarkCommand: the user probably meant another task.
+        if (!unmarked.isDone()) {
+            throw new HarveyException(ui.formatLines("That one was never closed:", "  " + unmarked,
+                    "Check the number with list."));
+        }
         unmarked.markAsNotDone();
         storage.save(tasks.asList());
         return ui.formatLines("Reopened. Don't make a habit of it:", "  " + unmarked);

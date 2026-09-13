@@ -40,9 +40,10 @@ public class CommandTypeTest {
     }
 
     @Test
-    public void fromKeyword_wrongCase_exceptionThrown() {
-        // Matching is exact, so this documents that "TODO" is not accepted today.
-        assertThrows(HarveyException.class, () -> CommandType.fromKeyword("TODO"));
+    public void fromKeyword_wrongCase_returnsMatchingType() throws HarveyException {
+        // A user with caps lock on still means the same command.
+        assertEquals(CommandType.TODO, CommandType.fromKeyword("TODO"));
+        assertEquals(CommandType.LIST, CommandType.fromKeyword("List"));
     }
 
     @Test

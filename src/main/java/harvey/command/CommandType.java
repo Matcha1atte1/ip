@@ -61,7 +61,8 @@ public enum CommandType {
     }
 
     /**
-     * Finds the command a keyword refers to.
+     * Finds the command a keyword refers to, ignoring case, so {@code LIST} and
+     * {@code List} work as well as {@code list}.
      *
      * @param keyword the first word the user typed.
      * @return the matching command.
@@ -72,7 +73,7 @@ public enum CommandType {
         // any command added later. findFirst stops at the match rather than examining
         // the rest, the same as returning from inside a loop.
         return Arrays.stream(values())
-                .filter(command -> command.keyword.equals(keyword))
+                .filter(command -> command.keyword.equalsIgnoreCase(keyword))
                 .findFirst()
                 .orElseThrow(() -> unknownKeyword(keyword));
     }
@@ -91,7 +92,8 @@ public enum CommandType {
         if (keyword.isEmpty()) {
             return new HarveyException("You didn't say anything, and I don't read minds. " + listKeywords());
         }
-        return new HarveyException("I don't negotiate with gibberish like \"" + keyword + "\". " + listKeywords());
+        return new HarveyException("I don't negotiate with gibberish like \"" + keyword + "\". "
+                + listKeywords());
     }
 
     /**

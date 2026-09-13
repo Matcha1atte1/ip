@@ -92,6 +92,20 @@ public class Event extends Task {
     }
 
     /**
+     * {@inheritDoc}
+     * An event also needs the same start and end: a weekly lesson on two dates is two tasks.
+     */
+    @Override
+    public boolean hasSameDetails(Task other) {
+        // super checks the class first, so the cast below is safe once it has passed.
+        if (!super.hasSameDetails(other)) {
+            return false;
+        }
+        Event otherEvent = (Event) other;
+        return from.equals(otherEvent.from) && to.equals(otherEvent.to);
+    }
+
+    /**
      * Returns whether this event and another one share any time at all.
      * <p>
      * Both comparisons are strict, so events that merely touch do not overlap: one running

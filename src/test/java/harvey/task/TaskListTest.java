@@ -261,4 +261,32 @@ public class TaskListTest {
 
         assertEquals(Optional.empty(), tasks.findClash(sarah));
     }
+
+    @Test
+    public void findDuplicate_sameTodoInOtherCase_returnsStoredTask() throws HarveyException {
+        TaskList tasks = threeTasks();
+        assertSame(tasks.get(2), tasks.findDuplicate(new Todo("B")).orElseThrow());
+    }
+
+    @Test
+    public void findDuplicate_deadlineWithSameDescriptionAsTodo_returnsEmpty() {
+        // Different kinds of task are different tasks, even with the same words.
+        TaskList tasks = threeTasks();
+        assertEquals(Optional.empty(), tasks.findDuplicate(new Deadline("a", LocalDate.of(2026, 10, 1))));
+    }
+
+    @Test
+    public void findDuplicate_eventAtOtherTime_returnsEmpty() throws HarveyException {
+        TaskList tasks = new TaskList();
+        tasks.add(eventFrom("tuition Ben", 16, 18));
+        assertEquals(Optional.empty(), tasks.findDuplicate(eventFrom("tuition Ben", 18, 20)));
+    }
+
+    @Test
+    public void findDuplicate_taskAlreadyInList_notReportedAsItsOwnDuplicate() {
+        TaskList tasks = new TaskList();
+        Todo todo = new Todo("read book");
+        tasks.add(todo);
+        assertEquals(Optional.empty(), tasks.findDuplicate(todo));
+    }
 }
