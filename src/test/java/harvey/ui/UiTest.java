@@ -23,18 +23,18 @@ public class UiTest {
 
     @Test
     public void formatTaskCount_oneTask_usesSingular() {
-        assertEquals("Now you have 1 task in the list.", ui.formatTaskCount(1));
+        assertEquals("You've got 1 case on the docket.", ui.formatTaskCount(1));
     }
 
     @Test
     public void formatTaskCount_severalTasks_usesPlural() {
-        assertEquals("Now you have 3 tasks in the list.", ui.formatTaskCount(3));
+        assertEquals("You've got 3 cases on the docket.", ui.formatTaskCount(3));
     }
 
     @Test
     public void formatTaskCount_noTasksLeft_usesPlural() {
-        // "0 tasks" reads correctly, so zero is not a special case the way one is.
-        assertEquals("Now you have 0 tasks in the list.", ui.formatTaskCount(0));
+        // "0 cases" reads correctly, so zero is not a special case the way one is.
+        assertEquals("You've got 0 cases on the docket.", ui.formatTaskCount(0));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class UiTest {
         tasks.add(new Todo("read book"));
         tasks.add(new Todo("buy milk"));
 
-        assertEquals("Here are the tasks in your list:" + NEW_LINE
+        assertEquals("Here's your docket:" + NEW_LINE
                 + "1.[T][ ] read book" + NEW_LINE
                 + "2.[T][ ] buy milk", ui.formatTaskList(tasks));
     }

@@ -12,7 +12,7 @@ public class ListCommand extends Command {
     @Override
     public String execute(TaskList tasks, Ui ui, Storage storage) throws HarveyException {
         if (tasks.isEmpty()) {
-            throw new HarveyException("Your list is empty. Add something with, say: "
+            throw new HarveyException("Your docket is empty. Bring me something, like: "
                     + CommandType.TODO.getExample());
         }
         return ui.formatTaskList(tasks);

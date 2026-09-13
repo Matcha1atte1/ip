@@ -52,9 +52,9 @@ public class CommandTest {
         TaskList tasks = new TaskList();
         String reply = new AddCommand(CommandType.TODO, "read book").execute(tasks, ui, storage());
 
-        assertEquals("Got it. I've added this task:" + NEW_LINE
+        assertEquals("Consider it filed:" + NEW_LINE
                 + "  [T][ ] read book" + NEW_LINE
-                + "Now you have 1 task in the list.", reply);
+                + "You've got 1 case on the docket.", reply);
         assertEquals(1, tasks.size());
     }
 
@@ -74,7 +74,7 @@ public class CommandTest {
         TaskList tasks = listWithOneTodo();
         String reply = new MarkCommand("1").execute(tasks, ui, storage());
 
-        assertEquals("Nice! I've marked this task as done:" + NEW_LINE
+        assertEquals("Closed. Another win:" + NEW_LINE
                 + "  [T][X] read book", reply);
     }
 
@@ -84,7 +84,7 @@ public class CommandTest {
         new MarkCommand("1").execute(tasks, ui, storage());
         String reply = new UnmarkCommand("1").execute(tasks, ui, storage());
 
-        assertEquals("OK, I've marked this task as not done yet:" + NEW_LINE
+        assertEquals("Reopened. Don't make a habit of it:" + NEW_LINE
                 + "  [T][ ] read book", reply);
     }
 
@@ -101,9 +101,9 @@ public class CommandTest {
         TaskList tasks = listWithOneTodo();
         String reply = new DeleteCommand("1").execute(tasks, ui, storage());
 
-        assertEquals("Noted. I've removed this task:" + NEW_LINE
+        assertEquals("Dropped. That one's off the table:" + NEW_LINE
                 + "  [T][ ] read book" + NEW_LINE
-                + "Now you have 0 tasks in the list.", reply);
+                + "You've got 0 cases on the docket.", reply);
         assertTrue(tasks.isEmpty());
     }
 
@@ -112,7 +112,7 @@ public class CommandTest {
         TaskList tasks = listWithOneTodo();
         String reply = new ListCommand().execute(tasks, ui, storage());
 
-        assertEquals("Here are the tasks in your list:" + NEW_LINE
+        assertEquals("Here's your docket:" + NEW_LINE
                 + "1.[T][ ] read book", reply);
     }
 
@@ -131,7 +131,7 @@ public class CommandTest {
         String reply = new FindCommand("milk").execute(tasks, ui, storage());
 
         // Numbered 1 among the matches, not 2 as it stands in the full list.
-        assertEquals("Here are the matching tasks in your list:" + NEW_LINE
+        assertEquals("Here's what I dug up:" + NEW_LINE
                 + "1.[T][ ] buy milk", reply);
     }
 
@@ -148,7 +148,7 @@ public class CommandTest {
         ExitCommand command = new ExitCommand();
         String reply = command.execute(new TaskList(), ui, storage());
 
-        assertEquals("Bye. Hope to see you again soon!", reply);
+        assertEquals("We're done here. Go win something.", reply);
         assertTrue(command.isExit());
     }
 

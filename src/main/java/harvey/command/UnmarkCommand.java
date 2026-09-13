@@ -24,6 +24,6 @@ public class UnmarkCommand extends Command {
         Task unmarked = tasks.get(parseTaskNumber(argument, tasks, CommandType.UNMARK));
         unmarked.markAsNotDone();
         storage.save(tasks.asList());
-        return ui.formatLines("OK, I've marked this task as not done yet:", "  " + unmarked);
+        return ui.formatLines("Reopened. Don't make a habit of it:", "  " + unmarked);
     }
 }
